@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=6.0, user-scalable=yes">
+  <title>الأسطرلاب الفلكي الأندلسي | Andalusian Astrolabe</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- WORKSPACE DISPLAY (FULLSCREEN HERO ASTROLABE) -->
+  <div id="workspace" class="rotating">
+    <div id="astrolabe-viewport">
+      <!-- KURSI (THRONE / العرش والكرسي) -->
+      <div id="kursi-container">
+        <img id="kursi-img" class="kursi-img" src="assets/Kursi.svg" alt="العرش والكرسي">
+      </div>
+
+      <!-- FRONT LAYERS -->
+      <div id="front-face-container" class="face-container">
+        <img id="plate-layer" class="astro-layer" src="assets/Plate.svg" alt="Plate">
+        <img id="ecliptic-layer" class="astro-layer" src="assets/Ecliptic.svg" alt="Ecliptic" style="opacity: 0.0;">
+        <img id="rete-layer" class="astro-layer" src="assets/Rete.svg" alt="Rete">
+
+        <!-- Precise Sun Layer on 568.8 x 568.8 canvas matching Rete SVG coordinate space -->
+        <svg id="sun-layer" class="astro-layer" viewBox="0 0 568.8 568.8">
+          <defs>
+            <radialGradient id="sun-halo" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#F59E0B" stop-opacity="0.40" />
+              <stop offset="40%" stop-color="#F59E0B" stop-opacity="0.25" />
+              <stop offset="75%" stop-color="#F59E0B" stop-opacity="0.08" />
+              <stop offset="100%" stop-color="#F59E0B" stop-opacity="0.0" />
+            </radialGradient>
+          </defs>
+          <!-- Sun Marker directly engraved on the Rete's Ecliptic ring -->
+          <g id="sun-marker-group">
+            <!-- Perfectly circular soft luminous halo -->
+            <circle id="sun-aura" cx="284.4" cy="284.4" r="7.0" fill="url(#sun-halo)" />
+            <!-- Solar disk -->
+            <circle id="sun-dot" cx="284.4" cy="284.4" r="2.5" fill="rgba(255, 175, 0, 0.66)" stroke="#92400E"
+              stroke-width="0.8" />
+            <!-- Solar center core -->
+            <circle id="sun-core" cx="284.4" cy="284.4" r=".6" fill="#DC2626" />
+          </g>
+        </svg>
+
+        <img id="rule-layer" class="astro-layer" src="assets/Rule.svg" alt="Rule">
+      </div>
+
+      <!-- BACK LAYERS -->
+      <div id="back-face-container" class="face-container" style="display:none;">
+        <img id="back-layer" class="astro-layer" src="assets/Back.svg" alt="Back">
+        <img id="alidade-layer" class="astro-layer" src="assets/Alidade.svg" alt="Alidade">
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOATING TOP BAR -->
+  <div class="floating-top-bar">
+    <div class="floating-group">
+      <button id="menu-btn" class="fab-pill fab-menu-btn" onclick="toggleMenu(true)">
+        <span>☰</span> <span>الإعدادات</span>
+      </button>
+
+      <!-- Quick Layer Filter Pills -->
+      <div class="filter-group">
+        <button class="filter-btn active" id="filter-all" onclick="setLayerFilter('all')">🌟 الكل</button>
+        <button class="filter-btn" id="filter-stars" onclick="setLayerFilter('stars')">✨ النجوم</button>
+        <button class="filter-btn" id="filter-grid" onclick="setLayerFilter('grid')">📐 المقنطرات</button>
+        <button class="filter-btn" id="filter-prayers" onclick="setLayerFilter('prayers')">🕌 الصلاة</button>
+      </div>
+
+      <!-- Theme Switcher Pills (3 Styles) -->
+      <div class="theme-segmented">
+        <button class="theme-btn theme-btn-light" onclick="setTheme('light')" title="الوضع الفاتح (عاجي وورق رصد)">
+          <span>☀️</span> <span>فاتح</span>
+        </button>
+        <button class="theme-btn theme-btn-ancient active" onclick="setTheme('ancient')"
+          title="الوضع التراثي (نحاس أندلسي وذهب عتيق)">
+          <span>🏺</span> <span>عتيق</span>
+        </button>
+        <button class="theme-btn theme-btn-dark" onclick="setTheme('dark')" title="الوضع الليلي (فلكي داكن)">
+          <span>🌙</span> <span>داكن</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="floating-group">
+      <button id="inspector-toggle-btn" class="fab-pill" onclick="toggleInspector()">
+        <span>🔭</span> <span>المرصد</span>
+      </button>
+      <button id="quick-face-btn" class="fab-pill" onclick="toggleFaceQuick()">
+        <span id="quick-face-icon">☀️</span> <span id="quick-face-label">الوجه</span>
+      </button>
+      <button id="quick-mode-btn" class="fab-pill active" onclick="toggleTouchModeQuick()">
+        <span id="quick-mode-icon">🧭</span> <span id="quick-mode-label">الشبكة</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- FLOATING TIME / DATE STEPPERS BAR -->
+  <div class="floating-steppers-bar">
+    <button class="step-btn" onclick="stepTime(-1.0)" title="-1 ساعة">-1س</button>
+    <button class="step-btn" onclick="stepTime(-10/60)" title="-10 دقائق">-10د</button>
+    <span class="step-time-badge" id="stepper-time-txt">12:00</span>
+    <button class="step-btn" onclick="stepTime(10/60)" title="+10 دقائق">+10د</button>
+    <button class="step-btn" onclick="stepTime(1.0)" title="+1 ساعة">+1س</button>
+    <button class="step-btn now-btn" style="background:var(--accent); color:#fff;" onclick="setNow()"
+      title="الوقت الفعلي">⏱ الآن</button>
+    <span class="stepper-sep" style="color:#64748b; font-size:0.75rem;">|</span>
+    <button class="step-btn" onclick="stepDay(-1)" title="-1 يوم">-1ي</button>
+    <div class="stepper-date-picker-wrapper" title="اضغط لاختيار التاريخ من التقويم مباشرة">
+      <button class="step-date-btn" id="stepper-date-btn" type="button">
+        <span>📅</span> <span id="stepper-date-txt">21 مارس</span>
+      </button>
+      <input type="date" id="floating-date-picker" class="stepper-native-date-input" aria-label="اختر التاريخ">
+    </div>
+    <button class="step-btn" onclick="stepDay(1)" title="+1 يوم">+1ي</button>
+  </div>
+
+  <!-- FLOATING RIGHT DOCK (ZOOM & INTERACTION MODE) -->
+  <div class="floating-dock-right">
+    <!-- Mode Toggle Button: Rotate vs Pan -->
+    <button class="dock-btn" id="btn-interact-mode" onclick="toggleInteractionMode()"
+      title="تبديل وضع التحكم (تدوير / تحريك) - أو اضغط باستمرار على مسطرة المسافات Space للتحريك">
+      <span id="interact-mode-icon">🔄</span>
+    </button>
+    <div class="dock-label" id="interact-mode-lbl">تدوير</div>
+
+    <!-- Zoom In -->
+    <button class="dock-btn" onclick="zoomBy(0.25)" title="تكبير (+)">+</button>
+
+    <!-- Zoom Out -->
+    <button class="dock-btn" onclick="zoomBy(-0.25)" title="تصغير (-)">−</button>
+
+    <!-- Reset Zoom & Pan -->
+    <button class="dock-btn" onclick="resetView()" title="إعادة ضبط الرؤية (100%)">⟲</button>
+    <div class="dock-label" id="dock-zoom-badge">100%</div>
+  </div>
+
+  <!-- LIVE CELESTIAL INSPECTOR HUD CARD -->
+  <div class="inspector-hud" id="inspector-card">
+    <div class="inspector-header">
+      <div class="inspector-title">
+        <span>🔭</span> <span>مرصد الأسطرلاب المباشر</span>
+      </div>
+      <span class="badge-tag" id="inspector-status-badge">نهار</span>
+    </div>
+    <div class="inspector-row">
+      <span>تحت المسدد / العضادة:</span>
+      <span class="inspector-val" id="insp-object">الشمس ☉</span>
+    </div>
+    <div class="inspector-row">
+      <span>منزل القمر (الأنواء):</span>
+      <span class="inspector-val" id="insp-mansion">--</span>
+    </div>
+    <div class="inspector-row">
+      <span>الارتفاع الفلكي (المقنطرة):</span>
+      <span class="inspector-val" id="insp-alt">+0.0°</span>
+    </div>
+    <div class="inspector-row">
+      <span>سمت الرأس (السمت):</span>
+      <span class="inspector-val" id="insp-az">0.0°</span>
+    </div>
+    <div class="inspector-row">
+      <span>الوقت الشمسي:</span>
+      <span class="inspector-val" id="insp-solar">12:00</span>
+    </div>
+    <div class="inspector-row">
+      <span>مطلع الفلك (LST نجومي):</span>
+      <span class="inspector-val" id="insp-lst">--:--</span>
+    </div>
+    <div class="inspector-star-highlight" id="insp-nearest-star">
+      ⭐ أقرب نجم: يد الجوزاء (Betelgeuse)
+    </div>
+  </div>
+
+  <!-- FLOATING BOTTOM MINI HUD BADGE -->
+  <div class="floating-bottom-bar">
+    <div class="mini-hud-pill" onclick="toggleMenu(true)">
+      <span class="badge-tag" id="mini-live-tag" onclick="event.stopPropagation(); toggleLiveMode();" style="background:#059669; color:#fff; cursor:pointer;" title="انقر للتبديل بين التتبع الحي والتحكم اليدوي">● مباشر</span>
+      <span>☀️ شمس: <span class="hud-hl" id="mini-solar-time">12:00</span></span>
+      <span>⏰ مدني: <span class="hud-hl" id="mini-clock-time">12:45</span></span>
+      <span>📐 ارتفاع: <span class="hud-hl" id="mini-alt">+42.5°</span></span>
+    </div>
+  </div>
+
+  <!-- DRAWER BACKDROP -->
+  <div id="drawer-backdrop" onclick="toggleMenu(false)"></div>
+
+  <!-- COLLAPSIBLE SIDEBAR DRAWER -->
+  <div id="sidebar">
+    <div class="drawer-header">
+      <div class="drawer-title">
+        <h2>الأسطرلاب الفلكي</h2>
+        <div class="subtitle">طنجة (عرض 35.78° شمالاً | توقيت GMT+0)</div>
+      </div>
+      <button class="close-btn" onclick="toggleMenu(false)" aria-label="إغلاق">✕</button>
+    </div>
+
+    <div class="tabs-container">
+      <button id="tab-front" class="tab-btn active" onclick="switchFace('front')">☀️ وجه الأسطرلاب</button>
+      <button id="tab-back" class="tab-btn" onclick="switchFace('back')">🌙 ظهر الأسطرلاب</button>
+    </div>
+
+    <!-- Theme Selection Drawer Control -->
+    <div class="control-group" style="margin-bottom: 4px;">
+      <div class="control-title"><span>نمط المظهر والمعدن:</span></div>
+      <div class="theme-segmented" style="width: 100%; justify-content: space-between;">
+        <button class="theme-btn theme-btn-light" style="flex: 1; justify-content: center;"
+          onclick="setTheme('light')">☀️ فاتح</button>
+        <button class="theme-btn theme-btn-ancient active" style="flex: 1; justify-content: center;"
+          onclick="setTheme('ancient')">🏺 عتيق</button>
+        <button class="theme-btn theme-btn-dark" style="flex: 1; justify-content: center;" onclick="setTheme('dark')">🌙
+          داكن</button>
+      </div>
+    </div>
+
+    <!-- ==================== FRONT FACE PANEL ==================== -->
+    <div id="front-panel" style="display: flex; flex-direction: column; gap: 10px;">
+      <div class="hud-card">
+        <div class="hud-title">
+          <span>الرصد الفلكي المباشر</span>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <span class="badge-tag" id="hud-live-tag" onclick="toggleLiveMode()" style="background:#059669; color:#fff; cursor:pointer;" title="انقر للتبديل بين التتبع الحي والتحكم اليدوي">● مباشر</span>
+            <span class="badge-tag" id="hud-status">نهار</span>
+          </div>
+        </div>
+        <div class="hud-line"><span>التاريخ الشمسي:</span><span class="hud-val clickable-date" id="hud-date"
+            onclick="triggerDatePicker('floating-date-picker')" title="اضغط لاختيار التاريخ من التقويم">--</span></div>
+        <div class="hud-line"><span>برج وموضع الشمس:</span><span class="hud-val" id="hud-zodiac">--</span></div>
+        <div class="hud-line"><span>الوقت الشمسي (الأسطرلاب):</span><span class="hud-val" id="hud-solar-time">--</span>
+        </div>
+        <div class="hud-line"><span>التوقيت المدني (GMT+0):</span><span class="hud-val" id="hud-clock-time">--</span>
+        </div>
+        <div class="hud-line"><span>ارتفاع الشمس (المقنطرة):</span><span class="hud-val" id="hud-altitude">--</span>
+        </div>
+        <div class="hud-line"><span>سمت الشمس (السمت):</span><span class="hud-val" id="hud-azimuth">--</span></div>
+        <div class="hud-line"><span>المسدد بالعضادة:</span><span class="hud-val" id="hud-star">الشمس المباشرة ☉</span>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <div class="control-title"><span>دوران الشبكة (النجوم والأبراج):</span><span id="txt-rete">0.0°</span></div>
+        <input type="range" id="slider-rete" min="0" max="360" step="0.5" value="0">
+      </div>
+
+      <div class="control-group">
+        <div class="control-title"><span>دوران المسطرة (العضادة):</span><span id="txt-rule">0.0°</span></div>
+        <input type="range" id="slider-rule" min="0" max="360" step="0.5" value="0">
+      </div>
+
+      <div class="control-group date-picker-group">
+        <div class="control-title">
+          <span>📅 تاريخ اليوم (Date):</span>
+          <span id="txt-day-formatted" class="highlight-date-badge">21 مارس</span>
+        </div>
+        <div class="date-picker-row">
+          <input type="date" id="sidebar-date-picker" class="date-field" aria-label="اختر التاريخ">
+          <button class="date-now-btn" type="button" onclick="setNow()" title="تاريخ ولحظة اليوم">اليوم</button>
+        </div>
+        <div class="season-presets">
+          <button class="season-btn" type="button" onclick="setDatePreset(80)" title="الاعتدال الربيعي">🌸 21 مارس
+            (ربيع)</button>
+          <button class="season-btn" type="button" onclick="setDatePreset(172)" title="الانقلاب الصيفي">☀️ 21 يونيو
+            (صيف)</button>
+          <button class="season-btn" type="button" onclick="setDatePreset(266)" title="الاعتدال الخريفي">🍂 23 سبتمبر
+            (خريف)</button>
+          <button class="season-btn" type="button" onclick="setDatePreset(355)" title="الانقلاب الشتوي">❄️ 21 ديسمبر
+            (شتاء)</button>
+        </div>
+        <div class="slider-subtext">
+          <span>أو مرّر الأيام (1 - 365):</span>
+          <span id="txt-day">اليوم 80</span>
+        </div>
+        <input type="range" id="slider-day" min="1" max="365" step="1" value="80">
+      </div>
+
+      <div class="control-group">
+        <div class="control-title"><span>الوقت الشمسي (الساعات):</span><span id="txt-time">12:00</span></div>
+        <input type="range" id="slider-time" min="0" max="24" step="0.05" value="12">
+      </div>
+
+      <div class="control-group">
+        <div class="control-title"><span>تكبير الأسطرلاب والتفاصيل:</span><span id="txt-zoom">100%</span></div>
+        <input type="range" id="slider-zoom" min="70" max="400" step="5" value="100"
+          oninput="setZoom(this.value / 100)">
+      </div>
+
+      <div class="control-title" style="margin-top: 4px;">مواقيت الصلاة الفلكية (Prayer Times):</div>
+      <div class="button-grid" style="grid-template-columns: repeat(3, 1fr);">
+        <button class="action-btn" style="background:#1E3A8A;" onclick="setFajr()">الفجر (١٩°-)</button>
+        <button class="action-btn" style="background:#D97706;" onclick="setSunrise()">الشروق (٠°)</button>
+        <button class="action-btn" style="background:#CA8A04;" onclick="setDhuhr()">الظهر (الزوال)</button>
+        <button class="action-btn" style="background:#C05000;" onclick="setAsr()">العصر (الظل+١)</button>
+        <button class="action-btn" style="background:#DC2626;" onclick="setMaghrib()">المغرب (٠°)</button>
+        <button class="action-btn" style="background:#5B21B6;" onclick="setIsha()">العشاء (١٧°-)</button>
+      </div>
+
+      <div class="button-grid" style="grid-template-columns: repeat(2, 1fr); margin-top: 4px;">
+        <button class="action-btn" style="background:#0284C7;" onclick="setNow()">الوقت الحقيقي (الآن)</button>
+        <button class="action-btn" style="background:#059669;" onclick="exportCanvas()">حفظ رصد (طباعة)</button>
+      </div>
+
+      <div class="legend">
+        💡 اسحب بإصبعك للتدوير، أو اضغط زر 🔍 للتحريك، أو استخدم إصبعين للتكبير والتحريك في أي وقت.
+      </div>
+    </div>
+
+    <!-- ==================== BACK FACE PANEL ==================== -->
+    <div id="back-panel" style="display: none; flex-direction: column; gap: 10px;">
+      <div class="hud-card">
+        <div class="hud-title"><span>قياس الارتفاع على حافة الزوايا</span><span class="badge-tag">الظهر</span></div>
+        <div class="hud-line"><span>الارتفاع المقاس (0° إلى 90°):</span><span class="hud-val"
+            id="hud-back-alt">0.0°</span></div>
+        <div class="hud-line"><span>زاوية العضادة (0° إلى 360°):</span><span class="hud-val"
+            id="hud-alidade-deg">0.0°</span></div>
+        <div class="hud-line"><span>الربع الفلكي:</span><span class="hud-val" id="hud-back-quad">ربع المغرب</span></div>
+      </div>
+
+      <div class="hud-card">
+        <div class="hud-title"><span>معادلة الوقت (Equation of Time)</span></div>
+        <div class="hud-line"><span>قيمة المعادلة:</span><span class="hud-val" id="hud-eot-val">+00:00 دقيقة</span>
+        </div>
+        <div class="hud-line"><span>قراءة تدريج العضادة:</span><span class="hud-val" id="hud-eot-alidade">+0.0
+            دقيقة</span></div>
+        <div class="hud-line"><span>حالة الشمس:</span><span class="hud-val" id="hud-eot-status">تطابق الوقت
+            المتوسط</span></div>
+      </div>
+
+      <div class="hud-card">
+        <div class="hud-title"><span>مربع الظل وربع المجيب الستيني</span></div>
+        <div class="hud-line"><span>الظل المبسوط (12 أصبع):</span><span class="hud-val" id="hud-shadow-recta">0.0
+            أصبع</span></div>
+        <div class="hud-line"><span>الظل المنكوس (12 أصبع):</span><span class="hud-val" id="hud-shadow-versa">0.0
+            أصبع</span></div>
+        <div class="hud-line"><span>جيب الارتفاع (ستيني 60):</span><span class="hud-val" id="hud-sine-60">0.0 /
+            60</span></div>
+        <div class="hud-line"><span>جيب التمام (ستيني 60):</span><span class="hud-val" id="hud-cos-60">60.0 / 60</span>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <div class="control-title"><span>دوران العضادة الخلفية (Alidade):</span><span id="txt-alidade">0.0°</span></div>
+        <input type="range" id="slider-alidade" min="0" max="360" step="0.5" value="90">
+      </div>
+
+      <div class="control-group date-picker-group">
+        <div class="control-title">
+          <span>📅 تاريخ اليوم والبرج (Date):</span>
+          <span id="txt-day-back-formatted" class="highlight-date-badge">21 مارس</span>
+        </div>
+        <div class="date-picker-row">
+          <input type="date" id="sidebar-date-picker-back" class="date-field" aria-label="اختر التاريخ">
+          <button class="date-now-btn" type="button" onclick="setNow()" title="تاريخ ولحظة اليوم">اليوم</button>
+        </div>
+        <div class="season-presets">
+          <button class="season-btn" type="button" onclick="setDatePreset(80)" title="الاعتدال الربيعي">🌸 21 مارس
+            (ربيع)</button>
+          <button class="season-btn" type="button" onclick="setDatePreset(172)" title="الانقلاب الصيفي">☀️ 21 يونيو
+            (صيف)</button>
+          <button class="season-btn" type="button" onclick="setDatePreset(266)" title="الاعتدال الخريفي">🍂 23 سبتمبر
+            (خريف)</button>
+          <button class="season-btn" type="button" onclick="setDatePreset(355)" title="الانقلاب الشتوي">❄️ 21 ديسمبر
+            (شتاء)</button>
+        </div>
+        <div class="slider-subtext">
+          <span>أو مرّر الأيام (1 - 365):</span>
+          <span id="txt-day-back">اليوم 80</span>
+        </div>
+        <input type="range" id="slider-day-back" min="1" max="365" step="1" value="80">
+      </div>
+
+      <div class="button-grid" style="grid-template-columns: repeat(2, 1fr);">
+        <button class="action-btn" onclick="setBackNoonAlt()">ارتفاع الزوال اليوم</button>
+        <button class="action-btn" onclick="setBackZenith()">نقطة السمت (90°)</button>
+        <button class="action-btn" onclick="setBackHorizon()">خط الأفق (0°)</button>
+        <button class="action-btn" onclick="setBackAsrAlt()">ارتفاع صلاة العصر</button>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- Astrolabe Modular Engine & Catalogs -->
+  <script src="js/database.js"></script>
+  <script src="js/astronomy.js"></script>
+  <script src="js/astrolabe.js"></script>
+  <script src="js/app.js"></script>
+</body>
+
+</html>

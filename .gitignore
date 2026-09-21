@@ -1,0 +1,37 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+env/
+venv/
+ENV/
+.venv/
+/*.apk
+
+
+# macOS metadata
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Android / Gradle local properties and builds
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+.gradle/
+build/
+local.properties
+
+# IDEs and Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~

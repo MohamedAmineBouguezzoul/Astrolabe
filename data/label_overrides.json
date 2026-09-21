@@ -1,0 +1,140 @@
+{
+  "stars": {
+    "vindemiatrix": {
+      "ox": -0.0059,
+      "oy": -0.0389,
+      "ha": "center",
+      "va": "bottom",
+      "show_lbl": true
+    },
+    "acubens": {
+      "ox": 0,
+      "oy": 0.006,
+      "ha": "center",
+      "va": "center",
+      "show_lbl": true
+    },
+    "zubeneschamali": {
+      "ox": 0.0358,
+      "oy": -0.076,
+      "ha": "center",
+      "va": "top",
+      "show_lbl": true
+    },
+    "zubenelgenubi": {
+      "ox": -0.0192,
+      "oy": 0.0733,
+      "ha": "center",
+      "va": "bottom",
+      "show_lbl": true
+    },
+    "acrab": {
+      "ox": 0.0198,
+      "oy": 0.0464,
+      "ha": "center",
+      "va": "center",
+      "show_lbl": true
+    },
+    "meissa": {
+      "ox": 0.0004,
+      "oy": -0.0162,
+      "ha": "center",
+      "va": "top",
+      "show_lbl": true
+    },
+    "pollux": {
+      "ox": 0.0899,
+      "oy": -0.0169,
+      "ha": "center",
+      "va": "center",
+      "show_lbl": true
+    },
+    "castor": {
+      "ox": -0.0597,
+      "oy": -0.0223,
+      "ha": "right",
+      "va": "top",
+      "show_lbl": true
+    },
+    "algol": {
+      "ox": -0.0149,
+      "oy": -0.06,
+      "ha": "center",
+      "va": "top",
+      "show_lbl": true
+    },
+    "sadachbia": {
+      "ox": -0.0213,
+      "oy": -0.0587,
+      "ha": "center",
+      "va": "center",
+      "show_lbl": true
+    },
+    "sadalsuud": {
+      "ox": -0.0343,
+      "oy": -0.0495,
+      "ha": "center",
+      "va": "top",
+      "show_lbl": true
+    },
+    "albali": {
+      "ox": -0.028,
+      "oy": -0.0363,
+      "ha": "center",
+      "va": "top",
+      "show_lbl": true
+    },
+    "dabih": {
+      "ox": -0.1027,
+      "oy": -0.0317,
+      "ha": "center",
+      "va": "bottom",
+      "show_lbl": true
+    },
+    "algedi": {
+      "ox": -0.052,
+      "oy": -0.0579,
+      "ha": "center",
+      "va": "top",
+      "show_lbl": true
+    }
+  },
+  "constellations": {
+    "cancer": {
+      "label_pos": [
+        130.62,
+        10.99
+      ]
+    },
+    "libra": {
+      "label_pos": [
+        227.86,
+        -19.77
+      ]
+    },
+    "canis_minor": {
+      "label_pos": [
+        116.13,
+        11.21
+      ]
+    },
+    "pleiades": {
+      "label_pos": [
+        57.76,
+        28.56
+      ]
+    },
+    "aquarius": {
+      "label_pos": [
+        334.4,
+        -12.71
+      ]
+    },
+    "aries": {
+      "label_pos": [
+        34.76,
+        34.1
+      ]
+    }
+  }
+}

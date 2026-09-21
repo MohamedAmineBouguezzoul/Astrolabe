@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>محرر مواضع نجوم الإسطرلاب التفاعلي | Visual Label Editor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cinzel:wght@500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #090C10;
+      --panel-bg: rgba(18, 24, 34, 0.88);
+      --panel-border: rgba(212, 175, 55, 0.25);
+      --gold-primary: #D4AF37;
+      --gold-hover: #F3E5AB;
+      --gold-dim: #997B24;
+      --text-main: #E6EDF3;
+      --text-muted: #8B949E;
+      --accent-blue: #388BFD;
+      --accent-green: #2EA043;
+      --accent-red: #DA3633;
+      --star-halo: rgba(56, 93, 122, 0.45);
+      --font-ar: 'Amiri', serif;
+      --font-ui: 'Inter', sans-serif;
+      --font-eng: 'Cinzel', serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-ui);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Top Navigation Header */
+    header {
+      background: var(--panel-bg);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--panel-border);
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1.5px solid var(--gold-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--gold-primary);
+      font-size: 18px;
+    }
+
+    .brand h1 {
+      font-family: var(--font-ar);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--gold-primary);
+      letter-spacing: 0.5px;
+    }
+
+    .brand span {
+      font-size: 13px;
+      color: var(--text-muted);
+      border-right: 1px solid rgba(255, 255, 255, 0.15);
+      padding-right: 12px;
+      margin-right: 12px;
+      font-family: var(--font-eng);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      border: 1px solid transparent;
+      outline: none;
+    }
+
+    .btn-gold {
+      background: linear-gradient(135deg, #D4AF37 0%, #AA8010 100%);
+      color: #000;
+      box-shadow: 0 2px 8px rgba(212, 175, 55, 0.35);
+    }
+    .btn-gold:hover {
+      background: linear-gradient(135deg, #F3E5AB 0%, #D4AF37 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(212, 175, 55, 0.5);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text-main);
+    }
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: var(--gold-primary);
+    }
+
+    .btn-danger {
+      background: rgba(218, 54, 51, 0.15);
+      border: 1px solid rgba(218, 54, 51, 0.4);
+      color: #F85149;
+    }
+    .btn-danger:hover {
+      background: rgba(218, 54, 51, 0.3);
+    }
+
+    /* Main Workspace Layout */
+    .workspace {
+      flex: 1;
+      display: flex;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Canvas Viewport */
+    .viewport {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      cursor: grab;
+      background: radial-gradient(circle at center, #101520 0%, #080A0E 100%);
+    }
+
+    .viewport.panning {
+      cursor: grabbing;
+    }
+
+    #astrolabe-svg {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      overflow: visible;
+    }
+
+    /* Floating Viewport Controls */
+    .viewport-controls {
+      position: absolute;
+      bottom: 24px;
+      left: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 6px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+      z-index: 50;
+    }
+
+    .btn-icon {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      background: transparent;
+      border: none;
+      color: var(--text-main);
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.15s;
+    }
+    .btn-icon:hover {
+      background: rgba(212, 175, 55, 0.2);
+      color: var(--gold-primary);
+    }
+
+    /* Sidebar Inspector */
+    .sidebar {
+      width: 360px;
+      background: var(--panel-bg);
+      border-right: 1px solid var(--panel-border);
+      backdrop-filter: blur(16px);
+      display: flex;
+      flex-direction: column;
+      z-index: 50;
+      box-shadow: -4px 0 20px rgba(0,0,0,0.4);
+    }
+
+    .search-box {
+      padding: 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .search-input {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 6px;
+      padding: 10px 14px;
+      color: var(--text-main);
+      font-size: 14px;
+      font-family: var(--font-ar), var(--font-ui);
+      outline: none;
+      transition: border 0.2s;
+    }
+    .search-input:focus {
+      border-color: var(--gold-primary);
+    }
+
+    .inspector-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .card-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--gold-primary);
+      margin-bottom: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .star-header {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 14px;
+    }
+
+    .star-name-ar {
+      font-family: var(--font-ar);
+      font-size: 24px;
+      font-weight: 700;
+      color: #FFF;
+    }
+
+    .star-name-lat {
+      font-family: var(--font-eng);
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .meta-item {
+      background: rgba(0, 0, 0, 0.2);
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .meta-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+
+    .meta-val {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+      direction: ltr;
+      text-align: left;
+    }
+
+    .control-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .control-row label {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .num-input-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .num-input {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+      padding: 8px;
+      color: var(--text-main);
+      font-size: 14px;
+      direction: ltr;
+      text-align: center;
+      font-family: monospace;
+    }
+
+    .btn-step {
+      width: 32px;
+      height: 32px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 4px;
+      color: var(--text-main);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+    .btn-step:hover {
+      background: rgba(212, 175, 55, 0.2);
+      color: var(--gold-primary);
+    }
+
+    .align-btn-group {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4px;
+    }
+
+    .btn-toggle {
+      padding: 6px;
+      font-size: 11px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      color: var(--text-muted);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+    }
+    .btn-toggle.active {
+      background: rgba(212, 175, 55, 0.25);
+      border-color: var(--gold-primary);
+      color: var(--gold-primary);
+      font-weight: bold;
+    }
+
+    .hints-card {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      border-right: 3px solid var(--gold-primary);
+      padding: 10px 14px;
+      background: rgba(212, 175, 55, 0.05);
+      border-radius: 4px;
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      top: 80px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      background: rgba(18, 24, 34, 0.95);
+      border: 1px solid var(--gold-primary);
+      padding: 12px 24px;
+      border-radius: 8px;
+      color: #FFF;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 200;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* SVG Elements Styling */
+    .plate-rim {
+      fill: none;
+      stroke: #161D26;
+      stroke-width: 0.008;
+    }
+    .celestial-circle {
+      fill: none;
+      stroke: #1E293B;
+      stroke-width: 0.003;
+    }
+    .constellation-line {
+      stroke: #2E4E68;
+      stroke-width: 0.0022;
+      stroke-linecap: round;
+      opacity: 0.75;
+    }
+    .star-dot {
+      fill: #FFF;
+      transition: r 0.15s;
+    }
+    .star-dot.faint {
+      fill: #CBD5E1;
+    }
+    .star-halo-circle {
+      fill: var(--star-halo);
+      opacity: 0.35;
+    }
+
+    /* Interactive Draggable Labels */
+    .label-group {
+      cursor: grab;
+      transition: filter 0.15s;
+    }
+    .label-group:hover text {
+      fill: #FFEB3B !important;
+    }
+    .label-group.selected text {
+      fill: #FFD700 !important;
+      font-weight: bold;
+    }
+    .label-group.dragging {
+      cursor: grabbing;
+    }
+
+    .leader-line {
+      stroke: var(--gold-primary);
+      stroke-width: 0.0016;
+      stroke-dasharray: 0.004, 0.003;
+      pointer-events: none;
+      opacity: 0.85;
+    }
+
+    .selection-ring {
+      fill: none;
+      stroke: #FFD700;
+      stroke-width: 0.002;
+      stroke-dasharray: 0.005, 0.003;
+      pointer-events: none;
+      animation: rotateRing 8s linear infinite;
+    }
+
+    @keyframes rotateRing {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header Bar -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">★</div>
+      <h1>محرر مواضع نجوم الإسطرلاب</h1>
+      <span>ASTROLABE VISUAL LABEL TUNER</span>
+    </div>
+
+    <div class="header-actions">
+      <button id="btn-export-code" class="btn btn-secondary" title="نسخ إحداثيات بايثون إلى الحافظة">
+        <span>📋 نسخ كود بايثون</span>
+      </button>
+      <button id="btn-export-pdf" class="btn btn-secondary" title="توليد وتصدير ملفات PDF و SVG عالية الدقة">
+        <span>📑 تصدير PDF/SVG</span>
+      </button>
+      <button id="btn-reset" class="btn btn-danger" title="استعادة المواضع الافتراضية">
+        <span>↺ استعادة الافتراضي</span>
+      </button>
+      <button id="btn-save" class="btn btn-gold" title="حفظ دائم وتحديث ملفات المشروع">
+        <span>💾 حفظ دائم وتحديث الشبكة</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Workspace -->
+  <div class="workspace">
+    <!-- Viewport Canvas -->
+    <div class="viewport" id="viewport">
+      <svg id="astrolabe-svg" viewBox="-1.8 -1.8 3.6 3.6">
+        <!-- Defined Markers & Filters -->
+        <defs>
+          <filter id="glow-filter" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="0.008" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          </filter>
+        </defs>
+
+        <!-- Dynamic Astrolabe Content Root with Pan/Zoom Transform -->
+        <g id="scene-root">
+          <!-- Background Circles -->
+          <g id="grid-layer"></g>
+          <!-- Constellation Lines -->
+          <g id="lines-layer"></g>
+          <!-- Guide Leader Lines -->
+          <g id="guides-layer"></g>
+          <!-- Star Dots -->
+          <g id="stars-layer"></g>
+          <!-- Draggable Labels Layer -->
+          <g id="labels-layer"></g>
+          <!-- Selection Rings Layer -->
+          <g id="selection-layer"></g>
+        </g>
+      </svg>
+
+      <!-- Viewport Floating Controls -->
+      <div class="viewport-controls">
+        <button class="btn-icon" id="btn-zoom-in" title="تكبير">+</button>
+        <button class="btn-icon" id="btn-zoom-out" title="تصغير">−</button>
+        <button class="btn-icon" id="btn-zoom-reset" title="إعادة ضبط العرض">⊙</button>
+      </div>
+    </div>
+
+    <!-- Inspector Sidebar -->
+    <aside class="sidebar">
+      <!-- Star Search & Filter -->
+      <div class="search-box">
+        <input type="text" id="search-input" class="search-input" placeholder="ابحث عن نجم أو كوكبة (مثال: الجوزاء، الشعرى)...">
+      </div>
+
+      <!-- Inspector Content -->
+      <div class="inspector-content">
+        <!-- Selected Star Information -->
+        <div class="card" id="selected-card">
+          <div class="card-title">
+            <span>بيانات النجم المحدد</span>
+            <span id="badge-type" style="font-size: 10px; color: var(--gold-dim);">نجم كوكبي</span>
+          </div>
+
+          <div class="star-header">
+            <div class="star-name-ar" id="disp-name-ar">انقر على أي اسم نجم لتعديله</div>
+            <div class="star-name-lat" id="disp-name-lat">Click any star label on the rete</div>
+          </div>
+
+          <div class="meta-grid">
+            <div class="meta-item">
+              <div class="meta-label">الكوكبة</div>
+              <div class="meta-val" id="disp-constellation">-</div>
+            </div>
+            <div class="meta-item">
+              <div class="meta-label">القدر الظاهري</div>
+              <div class="meta-val" id="disp-mag">-</div>
+            </div>
+            <div class="meta-item">
+              <div class="meta-label">المطلع المستقيم (RA)</div>
+              <div class="meta-val" id="disp-ra">-</div>
+            </div>
+            <div class="meta-item">
+              <div class="meta-label">الميل (Dec)</div>
+              <div class="meta-val" id="disp-dec">-</div>
+            </div>
+          </div>
+
+          <!-- Fine-Tuning Coordinates -->
+          <div class="control-row">
+            <label>
+              <span>الإزاحة المماسية (ox)</span>
+              <span id="lbl-ox-val">0.000</span>
+            </label>
+            <div class="num-input-group">
+              <button class="btn-step" id="btn-ox-dec">-</button>
+              <input type="number" step="0.002" class="num-input" id="input-ox" value="0.000">
+              <button class="btn-step" id="btn-ox-inc">+</button>
+            </div>
+          </div>
+
+          <div class="control-row">
+            <label>
+              <span>الإزاحة القطرية (oy)</span>
+              <span id="lbl-oy-val">0.000</span>
+            </label>
+            <div class="num-input-group">
+              <button class="btn-step" id="btn-oy-dec">-</button>
+              <input type="number" step="0.002" class="num-input" id="input-oy" value="0.000">
+              <button class="btn-step" id="btn-oy-inc">+</button>
+            </div>
+          </div>
+
+          <!-- Alignment Options -->
+          <div class="control-row" style="margin-top: 10px;">
+            <label><span>المحاذاة الأفقية (Horizontal)</span></label>
+            <div class="align-btn-group">
+              <button class="btn-toggle" data-align="ha" data-val="right">يمين (Right)</button>
+              <button class="btn-toggle" data-align="ha" data-val="center">وسط (Center)</button>
+              <button class="btn-toggle" data-align="ha" data-val="left">يسار (Left)</button>
+            </div>
+          </div>
+
+          <div class="control-row">
+            <label><span>المحاذاة الرأسية (Vertical)</span></label>
+            <div class="align-btn-group">
+              <button class="btn-toggle" data-align="va" data-val="top">أعلى (Top)</button>
+              <button class="btn-toggle" data-align="va" data-val="center">وسط (Center)</button>
+              <button class="btn-toggle" data-align="va" data-val="bottom">أسفل (Bottom)</button>
+            </div>
+          </div>
+
+          <button id="btn-reset-selected" class="btn btn-secondary" style="width: 100%; margin-top: 10px;">
+            <span>↺ استعادة الموضع الافتراضي لهذا النجم</span>
+          </button>
+        </div>
+
+        <!-- Quick Usage Hints -->
+        <div class="hints-card">
+          <strong>طريقة الاستخدام السريعة:</strong><br>
+          • <strong>السحب بالفأرة:</strong> انقر واسحب أي اسم نجم لتحريكه مباشرة في أي اتجاه.<br>
+          • <strong>التحريك الدقيق:</strong> استخدم مفاتيح الأسهم (↑ ↓ ← →) للتحريك بمقدار دقيق جداً (0.002).<br>
+          • <strong>التكبير والتحريك:</strong> عجلة الفأرة للتكبير، وسحب الخلفية لتحريك اللوحة.<br>
+          • <strong>الحفظ الدائم:</strong> زر <strong>"حفظ دائم"</strong> يكتب التعديل فوراً في ملفات المشروع ويحدث ملفات SVG و PDF.
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast">
+    <span id="toast-icon">✓</span>
+    <span id="toast-msg">تم الحفظ بنجاح!</span>
+  </div>
+
+  <script>
+    // State management
+    let state = {
+      constants: {},
+      stars: [],
+      constellations: [],
+      overrides: { stars: {}, constellations: {} },
+      selectedItem: null, // star or constellation object
+      isDraggingLabel: false,
+      isPanning: false,
+      dragStart: { x: 0, y: 0 },
+      panStart: { x: 0, y: 0 },
+      viewTransform: { x: 0, y: 0, scale: 1.0 }
+    };
+
+    const viewport = document.getElementById('viewport');
+    const svg = document.getElementById('astrolabe-svg');
+    const sceneRoot = document.getElementById('scene-root');
+    const gridLayer = document.getElementById('grid-layer');
+    const linesLayer = document.getElementById('lines-layer');
+    const guidesLayer = document.getElementById('guides-layer');
+    const starsLayer = document.getElementById('stars-layer');
+    const labelsLayer = document.getElementById('labels-layer');
+    const selectionLayer = document.getElementById('selection-layer');
+
+    // Load initial data from backend API
+    async function loadData() {
+      try {
+        const res = await fetch('/api/data');
+        const data = await res.json();
+        state.constants = data.constants;
+        state.constellations = data.constellations;
+        state.stars = data.stars;
+        state.overrides = data.overrides || { stars: {}, constellations: {} };
+        
+        renderStaticBackground();
+        renderScene();
+        selectFirstStar();
+      } catch (err) {
+        showToast('تعذر تحميل بيانات النجوم: ' + err.message, true);
+      }
+    }
+
+    function renderStaticBackground() {
+      const R_cap = state.constants.r_capricorn || 1.45;
+      const R_eq = state.constants.r_equator || 1.0;
+      const R_can = state.constants.r_cancer || 0.69;
+
+      gridLayer.innerHTML = `
+        <!-- Outer Capricorn Rim -->
+        <circle cx="0" cy="0" r="${R_cap}" class="plate-rim" />
+        <circle cx="0" cy="0" r="${R_cap * 0.99}" stroke="#1E293B" stroke-width="0.002" fill="none" />
+        <!-- Equator -->
+        <circle cx="0" cy="0" r="${R_eq}" class="celestial-circle" stroke-dasharray="0.015, 0.010" />
+        <!-- Cancer -->
+        <circle cx="0" cy="0" r="${R_can}" class="celestial-circle" stroke-dasharray="0.008, 0.008" />
+        <!-- Central Collar -->
+        <circle cx="0" cy="0" r="0.06" stroke="#D4AF37" stroke-width="0.003" fill="none" opacity="0.6" />
+      `;
+    }
+
+    function renderScene() {
+      // Clear dynamic layers
+      linesLayer.innerHTML = '';
+      starsLayer.innerHTML = '';
+      labelsLayer.innerHTML = '';
+      guidesLayer.innerHTML = '';
+
+      const starMap = new Map();
+      state.stars.forEach(s => starMap.set(s.id, s));
+
+      // 1. Constellation Lines
+      state.constellations.forEach(c => {
+        if (!c.lines) return;
+        c.lines.forEach(([id1, id2]) => {
+          const s1 = starMap.get(id1);
+          const s2 = starMap.get(id2);
+          if (s1 && s2) {
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', s1.xp);
+            line.setAttribute('y1', s1.yp);
+            line.setAttribute('x2', s2.xp);
+            line.setAttribute('y2', s2.yp);
+            line.setAttribute('class', 'constellation-line');
+            linesLayer.appendChild(line);
+          }
+        });
+      });
+
+      // 2. Stars Dots
+      state.stars.forEach(s => {
+        // Size proportional to magnitude: mag 0 -> 0.012, mag 4 -> 0.005
+        const baseRadius = Math.max(0.0045, 0.0135 - 0.0022 * s.mag);
+
+        // Bright star optical halo
+        if (s.mag <= 1.2) {
+          const halo = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          halo.setAttribute('cx', s.xp);
+          halo.setAttribute('cy', s.yp);
+          halo.setAttribute('r', baseRadius * 1.5);
+          halo.setAttribute('class', 'star-halo-circle');
+          starsLayer.appendChild(halo);
+        }
+
+        const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        dot.setAttribute('cx', s.xp);
+        dot.setAttribute('cy', s.yp);
+        dot.setAttribute('r', baseRadius);
+        dot.setAttribute('class', s.mag > 3.0 ? 'star-dot faint' : 'star-dot');
+        starsLayer.appendChild(dot);
+      });
+
+      // 3. Constellation Title Labels
+      state.constellations.forEach(c => {
+        const [cra, cdec] = c.label_pos;
+        const [cx, cy] = starCoords(cra, cdec);
+
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        g.setAttribute('class', 'label-group const-label');
+        g.dataset.id = c.id;
+        g.dataset.type = 'constellation';
+
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', cx);
+        text.setAttribute('y', cy);
+        text.setAttribute('fill', '#4A90E2');
+        text.setAttribute('font-size', '0.019');
+        text.setAttribute('font-weight', 'bold');
+        text.setAttribute('font-family', 'Amiri, serif');
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('dominant-baseline', 'central');
+        text.setAttribute('stroke', '#080A0E');
+        text.setAttribute('stroke-width', '0.004');
+        text.setAttribute('paint-order', 'stroke fill');
+        text.textContent = c.name_ar;
+
+        // Rotation along tangent
+        const rotDeg = Math.atan2(cy, cx) * 180 / Math.PI + 90;
+        text.setAttribute('transform', `rotate(${rotDeg}, ${cx}, ${cy})`);
+
+        g.appendChild(text);
+        labelsLayer.appendChild(g);
+
+        attachLabelEvents(g, c, 'constellation');
+      });
+
+      // 4. Star Names Labels (Only labeled stars)
+      state.stars.filter(s => s.show_lbl).forEach(s => {
+        const { xl, yl, rotDeg } = computeStarLabelPos(s);
+
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        g.setAttribute('class', 'label-group star-label');
+        g.dataset.id = s.id;
+        g.dataset.type = 'star';
+
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', xl);
+        text.setAttribute('y', yl);
+        text.setAttribute('fill', '#FFFFFF');
+        text.setAttribute('font-size', '0.0155');
+        text.setAttribute('font-family', 'Amiri, serif');
+        text.setAttribute('text-anchor', s.ha === 'left' ? 'start' : (s.ha === 'right' ? 'end' : 'middle'));
+        text.setAttribute('dominant-baseline', s.va === 'top' ? 'hanging' : (s.va === 'bottom' ? 'text-top' : 'central'));
+        text.setAttribute('stroke', '#080A0E');
+        text.setAttribute('stroke-width', '0.0035');
+        text.setAttribute('paint-order', 'stroke fill');
+        text.textContent = s.name_ar;
+
+        text.setAttribute('transform', `rotate(${rotDeg}, ${xl}, ${yl})`);
+
+        g.appendChild(text);
+        labelsLayer.appendChild(g);
+
+        attachLabelEvents(g, s, 'star');
+      });
+
+      updateSelectionIndicator();
+    }
+
+    function starCoords(ra_deg, dec_deg) {
+      const R = state.constants.R || 1.0;
+      const dec = dec_deg * Math.PI / 180;
+      const r = R * Math.tan((Math.PI / 2.0 - dec) / 2.0);
+      const ra = ra_deg * Math.PI / 180;
+      return [r * Math.cos(ra), r * Math.sin(ra)];
+    }
+
+    function computeStarLabelPos(s) {
+      const r = s.r;
+      const th = s.th_rad;
+      const dr = (s.oy !== 0.0 || s.ox !== 0.0) ? s.oy : 0.024;
+      const dt = s.ox;
+      const xl = (r + dr) * Math.cos(th) - dt * Math.sin(th);
+      const yl = (r + dr) * Math.sin(th) + dt * Math.cos(th);
+      const rotDeg = th * 180 / Math.PI + 90;
+      return { xl, yl, rotDeg };
+    }
+
+    // Interactive Drag & Drop System
+    function attachLabelEvents(elem, item, type) {
+      elem.addEventListener('mousedown', (e) => {
+        if (e.button !== 0) return;
+        e.stopPropagation();
+        
+        selectItem(item, type);
+        startDragging(item, type, e);
+      });
+    }
+
+    function startDragging(item, type, e) {
+      state.isDraggingLabel = true;
+      const pt = screenToSvgCoords(e.clientX, e.clientY);
+      state.dragStart = { x: pt.x, y: pt.y };
+
+      const onMouseMove = (moveEvt) => {
+        if (!state.isDraggingLabel) return;
+        const curPt = screenToSvgCoords(moveEvt.clientX, moveEvt.clientY);
+        
+        if (type === 'star') {
+          // Invert (curPt.x, curPt.y) relative to star (xp, yp)
+          const r = item.r;
+          const th = item.th_rad;
+          const cosT = Math.cos(th);
+          const sinT = Math.sin(th);
+
+          // dr = curPt.x * cosT + curPt.y * sinT - r
+          // dt = -curPt.x * sinT + curPt.y * cosT
+          const dr = curPt.x * cosT + curPt.y * sinT - r;
+          const dt = -curPt.x * sinT + curPt.y * cosT;
+
+          item.ox = Math.round(dt * 10000) / 10000;
+          item.oy = Math.round(dr * 10000) / 10000;
+
+          // Record in overrides
+          if (!state.overrides.stars) state.overrides.stars = {};
+          state.overrides.stars[item.id] = {
+            ox: item.ox,
+            oy: item.oy,
+            ha: item.ha,
+            va: item.va,
+            show_lbl: true
+          };
+
+          updateInspectorValues();
+          updateDraggedStarLabel(item);
+          updateLeaderGuide(item);
+        } else if (type === 'constellation') {
+          // Invert to [cra, cdec]
+          const r_c = Math.hypot(curPt.x, curPt.y);
+          const ra_rad = Math.atan2(curPt.y, curPt.x);
+          let cra = ra_rad * 180 / Math.PI;
+          if (cra < 0) cra += 360;
+          const R = state.constants.R || 1.0;
+          const dec_rad = Math.PI / 2.0 - 2 * Math.atan(r_c / R);
+          const cdec = dec_rad * 180 / Math.PI;
+
+          item.label_pos = [Math.round(cra * 100) / 100, Math.round(cdec * 100) / 100];
+          item.cx = curPt.x;
+          item.cy = curPt.y;
+
+          if (!state.overrides.constellations) state.overrides.constellations = {};
+          state.overrides.constellations[item.id] = {
+            label_pos: item.label_pos
+          };
+
+          updateInspectorValues();
+          updateDraggedConstLabel(item);
+        }
+      };
+
+      const onMouseUp = () => {
+        state.isDraggingLabel = false;
+        guidesLayer.innerHTML = '';
+        window.removeEventListener('mousemove', onMouseMove);
+        window.removeEventListener('mouseup', onMouseUp);
+      };
+
+      window.addEventListener('mousemove', onMouseMove);
+      window.addEventListener('mouseup', onMouseUp);
+    }
+
+    function updateDraggedStarLabel(s) {
+      const g = labelsLayer.querySelector(`.star-label[data-id="${s.id}"]`);
+      if (!g) return;
+      const text = g.querySelector('text');
+      const { xl, yl, rotDeg } = computeStarLabelPos(s);
+      text.setAttribute('x', xl);
+      text.setAttribute('y', yl);
+      text.setAttribute('transform', `rotate(${rotDeg}, ${xl}, ${yl})`);
+    }
+
+    function updateDraggedConstLabel(c) {
+      const g = labelsLayer.querySelector(`.const-label[data-id="${c.id}"]`);
+      if (!g) return;
+      const text = g.querySelector('text');
+      text.setAttribute('x', c.cx);
+      text.setAttribute('y', c.cy);
+      const rotDeg = Math.atan2(c.cy, c.cx) * 180 / Math.PI + 90;
+      text.setAttribute('transform', `rotate(${rotDeg}, ${c.cx}, ${c.cy})`);
+    }
+
+    function updateLeaderGuide(s) {
+      const { xl, yl } = computeStarLabelPos(s);
+      guidesLayer.innerHTML = `
+        <line x1="${s.xp}" y1="${s.yp}" x2="${xl}" y2="${yl}" class="leader-line" />
+        <circle cx="${s.xp}" cy="${s.yp}" r="0.008" fill="none" stroke="#D4AF37" stroke-width="0.0015" />
+      `;
+    }
+
+    function selectItem(item, type) {
+      state.selectedItem = { data: item, type: type };
+      
+      // Highlight in SVG
+      document.querySelectorAll('.label-group').forEach(el => el.classList.remove('selected'));
+      const activeEl = labelsLayer.querySelector(`[data-id="${item.id}"]`);
+      if (activeEl) activeEl.classList.add('selected');
+
+      updateInspector();
+      updateSelectionIndicator();
+    }
+
+    function selectFirstStar() {
+      const primary = state.stars.find(s => s.id === 'betelgeuse') || state.stars[0];
+      if (primary) selectItem(primary, 'star');
+    }
+
+    function updateInspector() {
+      if (!state.selectedItem) return;
+      const { data, type } = state.selectedItem;
+
+      document.getElementById('disp-name-ar').textContent = data.name_ar || data.id;
+      document.getElementById('disp-name-lat').textContent = data.name_lat || data.id;
+      document.getElementById('badge-type').textContent = type === 'star' ? 'نجم مرصود' : 'عنوان كوكبة';
+
+      if (type === 'star') {
+        const constObj = state.constellations.find(c => c.id === data.constellation_id);
+        document.getElementById('disp-constellation').textContent = constObj ? constObj.name_ar : 'مفرد';
+        document.getElementById('disp-mag').textContent = data.mag.toFixed(2);
+        document.getElementById('disp-ra').textContent = data.ra.toFixed(2) + '°';
+        document.getElementById('disp-dec').textContent = data.dec.toFixed(2) + '°';
+      } else {
+        document.getElementById('disp-constellation').textContent = data.name_ar;
+        document.getElementById('disp-mag').textContent = 'كوكبة';
+        document.getElementById('disp-ra').textContent = data.label_pos[0].toFixed(2) + '°';
+        document.getElementById('disp-dec').textContent = data.label_pos[1].toFixed(2) + '°';
+      }
+
+      updateInspectorValues();
+    }
+
+    function updateInspectorValues() {
+      if (!state.selectedItem) return;
+      const { data, type } = state.selectedItem;
+
+      if (type === 'star') {
+        document.getElementById('input-ox').value = data.ox.toFixed(4);
+        document.getElementById('lbl-ox-val').textContent = data.ox.toFixed(4);
+        document.getElementById('input-oy').value = data.oy.toFixed(4);
+        document.getElementById('lbl-oy-val').textContent = data.oy.toFixed(4);
+
+        // Alignments
+        document.querySelectorAll('[data-align="ha"]').forEach(b => {
+          b.classList.toggle('active', b.dataset.val === (data.ha || 'center'));
+        });
+        document.querySelectorAll('[data-align="va"]').forEach(b => {
+          b.classList.toggle('active', b.dataset.val === (data.va || 'center'));
+        });
+      }
+    }
+
+    function updateSelectionIndicator() {
+      selectionLayer.innerHTML = '';
+      if (!state.selectedItem) return;
+      const { data, type } = state.selectedItem;
+
+      if (type === 'star') {
+        const ring = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        ring.setAttribute('cx', data.xp);
+        ring.setAttribute('cy', data.yp);
+        ring.setAttribute('r', '0.022');
+        ring.setAttribute('class', 'selection-ring');
+        selectionLayer.appendChild(ring);
+      }
+    }
+
+    // Step adjustment handlers
+    document.getElementById('btn-ox-inc').addEventListener('click', () => nudgeOffset('ox', 0.002));
+    document.getElementById('btn-ox-dec').addEventListener('click', () => nudgeOffset('ox', -0.002));
+    document.getElementById('btn-oy-inc').addEventListener('click', () => nudgeOffset('oy', 0.002));
+    document.getElementById('btn-oy-dec').addEventListener('click', () => nudgeOffset('oy', -0.002));
+
+    document.getElementById('input-ox').addEventListener('change', (e) => {
+      setDirectOffset('ox', parseFloat(e.target.value) || 0);
+    });
+    document.getElementById('input-oy').addEventListener('change', (e) => {
+      setDirectOffset('oy', parseFloat(e.target.value) || 0);
+    });
+
+    function nudgeOffset(axis, delta) {
+      if (!state.selectedItem || state.selectedItem.type !== 'star') return;
+      const s = state.selectedItem.data;
+      s[axis] = Math.round((s[axis] + delta) * 10000) / 10000;
+      recordStarOverride(s);
+      updateInspectorValues();
+      updateDraggedStarLabel(s);
+    }
+
+    function setDirectOffset(axis, val) {
+      if (!state.selectedItem || state.selectedItem.type !== 'star') return;
+      const s = state.selectedItem.data;
+      s[axis] = Math.round(val * 10000) / 10000;
+      recordStarOverride(s);
+      updateInspectorValues();
+      updateDraggedStarLabel(s);
+    }
+
+    function recordStarOverride(s) {
+      if (!state.overrides.stars) state.overrides.stars = {};
+      state.overrides.stars[s.id] = {
+        ox: s.ox,
+        oy: s.oy,
+        ha: s.ha,
+        va: s.va,
+        show_lbl: true
+      };
+    }
+
+    // Alignment buttons
+    document.querySelectorAll('.btn-toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (!state.selectedItem || state.selectedItem.type !== 'star') return;
+        const s = state.selectedItem.data;
+        const alignType = btn.dataset.align;
+        const alignVal = btn.dataset.val;
+
+        s[alignType] = alignVal;
+        recordStarOverride(s);
+        updateInspectorValues();
+
+        const g = labelsLayer.querySelector(`.star-label[data-id="${s.id}"]`);
+        if (g) {
+          const text = g.querySelector('text');
+          text.setAttribute('text-anchor', s.ha === 'left' ? 'start' : (s.ha === 'right' ? 'end' : 'middle'));
+          text.setAttribute('dominant-baseline', s.va === 'top' ? 'hanging' : (s.va === 'bottom' ? 'text-top' : 'central'));
+        }
+      });
+    });
+
+    // Keyboard Nudging
+    window.addEventListener('keydown', (e) => {
+      if (document.activeElement.tagName === 'INPUT') return;
+      if (!state.selectedItem || state.selectedItem.type !== 'star') return;
+
+      const step = e.shiftKey ? 0.010 : 0.002;
+      if (e.key === 'ArrowUp') {
+        nudgeOffset('oy', step);
+        e.preventDefault();
+      } else if (e.key === 'ArrowDown') {
+        nudgeOffset('oy', -step);
+        e.preventDefault();
+      } else if (e.key === 'ArrowLeft') {
+        nudgeOffset('ox', -step);
+        e.preventDefault();
+      } else if (e.key === 'ArrowRight') {
+        nudgeOffset('ox', step);
+        e.preventDefault();
+      }
+    });
+
+    // Pan & Zoom Controls
+    function applyTransform() {
+      const { x, y, scale } = state.viewTransform;
+      sceneRoot.setAttribute('transform', `translate(${x}, ${y}) scale(${scale})`);
+    }
+
+    viewport.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const zoomFactor = e.deltaY < 0 ? 1.15 : 0.87;
+      state.viewTransform.scale = Math.min(Math.max(state.viewTransform.scale * zoomFactor, 0.4), 15.0);
+      applyTransform();
+    }, { passive: false });
+
+    viewport.addEventListener('mousedown', (e) => {
+      if (e.button !== 0 || state.isDraggingLabel) return;
+      state.isPanning = true;
+      viewport.classList.add('panning');
+      state.panStart = { x: e.clientX, y: e.clientY };
+
+      const onMouseMove = (moveEvt) => {
+        if (!state.isPanning) return;
+        const dxScreen = moveEvt.clientX - state.panStart.x;
+        const dyScreen = moveEvt.clientY - state.panStart.y;
+        state.panStart = { x: moveEvt.clientX, y: moveEvt.clientY };
+
+        const rect = svg.getBoundingClientRect();
+        const svgUnitsPerPx = 3.6 / (rect.width * state.viewTransform.scale);
+
+        state.viewTransform.x += dxScreen * svgUnitsPerPx;
+        state.viewTransform.y += dyScreen * svgUnitsPerPx;
+        applyTransform();
+      };
+
+      const onMouseUp = () => {
+        state.isPanning = false;
+        viewport.classList.remove('panning');
+        window.removeEventListener('mousemove', onMouseMove);
+        window.removeEventListener('mouseup', onMouseUp);
+      };
+
+      window.addEventListener('mousemove', onMouseMove);
+      window.addEventListener('mouseup', onMouseUp);
+    });
+
+    document.getElementById('btn-zoom-in').addEventListener('click', () => {
+      state.viewTransform.scale = Math.min(state.viewTransform.scale * 1.3, 15.0);
+      applyTransform();
+    });
+    document.getElementById('btn-zoom-out').addEventListener('click', () => {
+      state.viewTransform.scale = Math.max(state.viewTransform.scale * 0.75, 0.4);
+      applyTransform();
+    });
+    document.getElementById('btn-zoom-reset').addEventListener('click', () => {
+      state.viewTransform = { x: 0, y: 0, scale: 1.0 };
+      applyTransform();
+    });
+
+    function screenToSvgCoords(clientX, clientY) {
+      const rect = svg.getBoundingClientRect();
+      const normX = (clientX - rect.left) / rect.width;
+      const normY = (clientY - rect.top) / rect.height;
+      const svgX = -1.8 + normX * 3.6;
+      const svgY = -1.8 + normY * 3.6;
+
+      const { x, y, scale } = state.viewTransform;
+      return {
+        x: (svgX - x) / scale,
+        y: (svgY - y) / scale
+      };
+    }
+
+    // Search filter
+    document.getElementById('search-input').addEventListener('input', (e) => {
+      const q = e.target.value.trim().toLowerCase();
+      if (!q) return;
+
+      const matchStar = state.stars.find(s => 
+        (s.name_ar && s.name_ar.includes(q)) || 
+        (s.name_lat && s.name_lat.toLowerCase().includes(q)) ||
+        s.id.toLowerCase().includes(q)
+      );
+
+      if (matchStar) {
+        selectItem(matchStar, 'star');
+        // Center view on this star
+        state.viewTransform.x = -matchStar.xp;
+        state.viewTransform.y = -matchStar.yp;
+        state.viewTransform.scale = 2.5;
+        applyTransform();
+      }
+    });
+
+    // Reset Selected
+    document.getElementById('btn-reset-selected').addEventListener('click', () => {
+      if (!state.selectedItem || state.selectedItem.type !== 'star') return;
+      const s = state.selectedItem.data;
+      s.ox = 0.0;
+      s.oy = 0.024;
+      s.ha = 'center';
+      s.va = 'center';
+
+      if (state.overrides.stars && state.overrides.stars[s.id]) {
+        delete state.overrides.stars[s.id];
+      }
+
+      updateInspectorValues();
+      updateDraggedStarLabel(s);
+      showToast(`تم استعادة الموضع الافتراضي للنجم: ${s.name_ar}`);
+    });
+
+    // Reset All
+    document.getElementById('btn-reset').addEventListener('click', async () => {
+      if (!confirm('هل أنت متأكد من رغبتك في استعادة المواضع الافتراضية لجميع النجوم والكوكبات؟')) return;
+      try {
+        const res = await fetch('/api/reset', { method: 'POST' });
+        const resp = await res.json();
+        if (resp.status === 'ok') {
+          showToast('تمت استعادة المواضع الافتراضية وإعادة توليد الرسوم بنجاح.');
+          loadData();
+        }
+      } catch (err) {
+        showToast('خطأ أثناء الاستعادة: ' + err.message, true);
+      }
+    });
+
+    // Permanent Save & Apply
+    document.getElementById('btn-save').addEventListener('click', async () => {
+      const saveBtn = document.getElementById('btn-save');
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = '<span>⏳ جاري الحفظ والتصدير...</span>';
+
+      try {
+        const res = await fetch('/api/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(state.overrides)
+        });
+        const resp = await res.json();
+        if (resp.status === 'ok') {
+          showToast('تم حفظ المواضع بشكل دائم وتحديث ملفات Rete.svg بنجاح!');
+        } else {
+          showToast('خطأ في الحفظ: ' + resp.message, true);
+        }
+      } catch (err) {
+        showToast('فشل الاتصال بالخادم: ' + err.message, true);
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<span>💾 حفظ دائم وتحديث الشبكة</span>';
+      }
+    });
+
+    // Export PDF
+    document.getElementById('btn-export-pdf').addEventListener('click', async () => {
+      const btn = document.getElementById('btn-export-pdf');
+      btn.disabled = true;
+      btn.innerHTML = '<span>⏳ جاري تصدير PDF...</span>';
+
+      try {
+        const res = await fetch('/api/export_pdf', { method: 'POST' });
+        const resp = await res.json();
+        if (resp.status === 'ok') {
+          showToast('تم تصدير ملفات PDF عالية الدقة إلى مجلد exports/pdf/!');
+        } else {
+          showToast('خطأ: ' + resp.message, true);
+        }
+      } catch (err) {
+        showToast('فشل التصدير: ' + err.message, true);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>📑 تصدير PDF/SVG</span>';
+      }
+    });
+
+    // Copy Python Code
+    document.getElementById('btn-export-code').addEventListener('click', () => {
+      const starOverrides = state.overrides.stars || {};
+      const constOverrides = state.overrides.constellations || {};
+
+      let pyCode = "# Label Position Overrides (Automatically generated)\n";
+      pyCode += "LABEL_OVERRIDES = " + JSON.stringify({ stars: starOverrides, constellations: constOverrides }, null, 4);
+
+      navigator.clipboard.writeText(pyCode).then(() => {
+        showToast('تم نسخ كود بايثون إلى الحافظة بنجاح!');
+      }).catch(() => {
+        showToast('تعذر النسخ التلقائي للحافظة.', true);
+      });
+    });
+
+    // Toast helper
+    function showToast(msg, isError = false) {
+      const toast = document.getElementById('toast');
+      const icon = document.getElementById('toast-icon');
+      const text = document.getElementById('toast-msg');
+
+      icon.textContent = isError ? '⚠' : '✓';
+      toast.style.borderColor = isError ? '#DA3633' : '#D4AF37';
+      text.textContent = msg;
+
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3500);
+    }
+
+    // Startup
+    loadData();
+  </script>
+</body>
+</html>
