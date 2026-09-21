@@ -1,0 +1,1082 @@
+    :root {
+      --bg: #070c18;
+      --card: #0f172a;
+      --card-surface: #1e293b;
+      --card-border: #334155;
+      --accent: #d97706;
+      --accent-dark: #92400e;
+      --accent-light: #f59e0b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --gold: #fbbf24;
+      --gold-light: #fef08a;
+      --font-family: 'Segoe UI', system-ui, -apple-system, Tahoma, Geneva, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: var(--font-family);
+    }
+
+    html,
+    body {
+      width: 100vw;
+      height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+      position: fixed;
+      inset: 0;
+      touch-action: none;
+    }
+
+    /* ==================== FULLSCREEN WORKSPACE ==================== */
+    #workspace {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at center, #172439 0%, #080d1a 100%);
+      overflow: hidden;
+      cursor: grab;
+    }
+
+    #workspace.panning {
+      cursor: grab;
+    }
+
+    #workspace.panning:active {
+      cursor: grabbing;
+    }
+
+    #workspace.rotating {
+      cursor: crosshair;
+    }
+
+    #workspace.space-panning {
+      cursor: grab !important;
+    }
+
+    #workspace.space-panning:active,
+    #workspace.space-grabbing {
+      cursor: grabbing !important;
+    }
+
+    #astrolabe-viewport {
+      width: min(88vw, 74vh);
+      height: min(88vw, 74vh);
+      margin-top: clamp(24px, 9vh, 75px);
+      position: relative;
+      background: transparent;
+      overflow: visible;
+      user-select: none;
+      -webkit-user-select: none;
+      transform-origin: 50% 50%;
+      will-change: auto;
+    }
+
+    #kursi-container {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      top: -28.092%;
+      height: 39.747%;
+      pointer-events: none;
+      z-index: 1;
+      filter: drop-shadow(0 -4px 14px rgba(0, 0, 0, 0.75));
+      transition: filter 0.3s ease;
+    }
+
+    .kursi-img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      -webkit-user-drag: none;
+      user-select: none;
+      -webkit-user-select: none;
+      transition: filter 0.3s ease;
+    }
+
+    .kursi-body {
+      fill: url(#kursi-ancient-grad);
+      stroke: #795213;
+      stroke-width: 1.4;
+      transition: fill 0.35s ease, stroke 0.35s ease;
+    }
+
+    .kursi-hole {
+      fill: #140d07;
+      stroke: #5f3e17;
+      stroke-width: 1;
+      transition: fill 0.35s ease, stroke 0.35s ease;
+    }
+
+
+    .face-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      box-shadow: 0 0 70px rgba(0, 0, 0, 0.92), 0 0 35px rgba(217, 119, 6, 0.3);
+      overflow: hidden;
+      transition: opacity 0.25s ease;
+      z-index: 5;
+    }
+
+    #workspace {
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .astro-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      transform-origin: 50% 50%;
+      transition: opacity 0.2s ease;
+      -webkit-user-drag: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    #plate-layer {
+      z-index: 10;
+    }
+
+    #ecliptic-layer {
+      z-index: 19;
+    }
+
+    #rete-layer {
+      z-index: 20;
+    }
+
+    #sun-layer {
+      z-index: 25;
+    }
+
+    #rule-layer {
+      z-index: 30;
+    }
+
+    #back-layer {
+      z-index: 15;
+    }
+
+    #alidade-layer {
+      z-index: 35;
+    }
+
+    /* ==================== FLOATING OVERLAY CONTROLS ==================== */
+    .floating-top-bar {
+      position: fixed;
+      top: max(12px, env(safe-area-inset-top));
+      left: 12px;
+      right: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    .floating-group {
+      display: flex;
+      gap: 8px;
+      pointer-events: auto;
+      flex-wrap: wrap;
+    }
+
+    .fab-pill {
+      background: rgba(15, 23, 42, 0.90);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(251, 191, 36, 0.4);
+      color: var(--text);
+      padding: 8px 14px;
+      border-radius: 30px;
+      font-size: 0.86rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+
+    .fab-pill:active {
+      transform: scale(0.95);
+      background: var(--accent);
+      color: #ffffff;
+    }
+
+    .fab-pill.active {
+      background: var(--accent);
+      color: #ffffff;
+      border-color: var(--gold-light);
+      box-shadow: 0 0 16px rgba(217, 119, 6, 0.6);
+    }
+
+    .fab-menu-btn {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95));
+      border: 1.5px solid var(--gold);
+      color: var(--gold);
+      font-weight: 800;
+      padding: 9px 16px;
+      font-size: 0.92rem;
+    }
+
+    /* Filter pill bar */
+    .filter-group {
+      display: flex;
+      gap: 4px;
+      background: rgba(15, 23, 42, 0.85);
+      border-radius: 30px;
+      padding: 3px;
+      border: 1px solid rgba(251, 191, 36, 0.3);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      pointer-events: auto;
+    }
+
+    .filter-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 5px 11px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .filter-btn.active {
+      background: var(--accent);
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(217, 119, 6, 0.5);
+    }
+
+    /* ==================== FLOATING DOCK (RIGHT SIDE: ZOOM & MODE) ==================== */
+    .floating-dock-right {
+      position: fixed;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 100;
+      pointer-events: auto;
+    }
+
+    .dock-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(15, 23, 42, 0.90);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(251, 191, 36, 0.45);
+      color: var(--gold);
+      font-size: 1.15rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6);
+      transition: all 0.2s ease;
+    }
+
+    .dock-btn:active {
+      transform: scale(0.92);
+      background: var(--accent);
+      color: #ffffff;
+    }
+
+    .dock-btn.active {
+      background: var(--accent);
+      color: #ffffff;
+      border-color: var(--gold-light);
+      box-shadow: 0 0 16px rgba(217, 119, 6, 0.65);
+    }
+
+    .dock-label {
+      background: rgba(15, 23, 42, 0.90);
+      border: 1px solid rgba(251, 191, 36, 0.35);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 3px 6px;
+      font-size: 0.70rem;
+      font-weight: 800;
+      text-align: center;
+      font-family: monospace;
+    }
+
+    /* ==================== FLOATING TIME/DATE STEPPERS ==================== */
+    .floating-steppers-bar {
+      position: fixed;
+      top: calc(max(12px, env(safe-area-inset-top)) + 50px);
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(251, 191, 36, 0.35);
+      padding: 4px 10px;
+      border-radius: 30px;
+      z-index: 95;
+      pointer-events: auto;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .step-btn {
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid rgba(251, 191, 36, 0.25);
+      color: var(--text);
+      padding: 4px 9px;
+      border-radius: 16px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .step-btn:active {
+      background: var(--accent);
+      color: #ffffff;
+      transform: scale(0.94);
+    }
+
+    .step-time-badge {
+      color: var(--gold);
+      font-weight: 800;
+      font-family: monospace;
+      font-size: 0.88rem;
+      padding: 0 4px;
+      min-width: 50px;
+      text-align: center;
+    }
+
+    .stepper-date-picker-wrapper {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .step-date-btn {
+      background: rgba(30, 41, 59, 0.9);
+      border: 1px solid rgba(217, 119, 6, 0.4);
+      color: var(--gold);
+      padding: 4px 10px;
+      border-radius: 16px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+
+    .step-date-btn:hover {
+      background: var(--accent);
+      color: #ffffff;
+      border-color: var(--accent-light);
+    }
+
+    .stepper-native-date-input {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+      z-index: 2;
+    }
+
+    .clickable-date {
+      cursor: pointer;
+      text-decoration: underline dotted rgba(217, 119, 6, 0.6);
+      transition: color 0.15s ease;
+    }
+
+    .clickable-date:hover {
+      color: var(--accent-light);
+    }
+
+    /* Dedicated Date Picker Group in Sidebar */
+    .date-picker-group {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid rgba(217, 119, 6, 0.25);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+    }
+
+    .highlight-date-badge {
+      color: var(--gold);
+      font-weight: 800;
+      font-size: 0.88rem;
+      background: rgba(217, 119, 6, 0.15);
+      padding: 2px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(217, 119, 6, 0.3);
+    }
+
+    .date-picker-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+      align-items: center;
+    }
+
+    .date-field {
+      flex: 1;
+      background: rgba(30, 41, 59, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 6px 10px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      font-family: inherit;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .date-field:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 8px rgba(217, 119, 6, 0.35);
+    }
+
+    .date-now-btn {
+      background: var(--accent);
+      color: #ffffff;
+      border: 1px solid var(--accent-dark);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+
+    .date-now-btn:hover {
+      background: var(--accent-light);
+    }
+
+    .season-presets {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .season-btn {
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      color: var(--text);
+      padding: 5px 6px;
+      border-radius: 6px;
+      font-size: 0.74rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .season-btn:hover {
+      background: rgba(217, 119, 6, 0.25);
+      border-color: var(--accent);
+      color: var(--gold);
+    }
+
+    .slider-subtext {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 10px;
+      margin-bottom: 2px;
+    }
+
+    /* ==================== CELESTIAL INSPECTOR HUD CARD ==================== */
+    .inspector-hud {
+      position: fixed;
+      top: calc(max(12px, env(safe-area-inset-top)) + 52px);
+      right: 14px;
+      width: min(290px, calc(100vw - 28px));
+      background: rgba(15, 23, 42, 0.92);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(251, 191, 36, 0.4);
+      border-radius: 14px;
+      padding: 10px 12px;
+      z-index: 90;
+      pointer-events: auto;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.65);
+      font-size: 0.82rem;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+    }
+
+    .inspector-hud.collapsed {
+      transform: translateY(-120%);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .inspector-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(251, 191, 36, 0.25);
+      padding-bottom: 4px;
+      margin-bottom: 6px;
+    }
+
+    .inspector-title {
+      color: var(--gold);
+      font-weight: 800;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .inspector-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 3px 0;
+      border-bottom: 1px dashed rgba(51, 65, 85, 0.5);
+    }
+
+    .inspector-row:last-child {
+      border-bottom: none;
+    }
+
+    .inspector-val {
+      color: var(--accent-light);
+      font-weight: 800;
+      font-family: monospace;
+      font-size: 0.86rem;
+    }
+
+    .inspector-star-highlight {
+      background: rgba(217, 119, 6, 0.18);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      border-radius: 6px;
+      padding: 4px 6px;
+      margin-top: 4px;
+      color: #fef08a;
+      font-weight: 700;
+      font-size: 0.78rem;
+      text-align: center;
+    }
+
+    /* Floating Bottom Mini HUD */
+    .floating-bottom-bar {
+      position: fixed;
+      bottom: max(12px, env(safe-area-inset-bottom));
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      pointer-events: auto;
+    }
+
+    .mini-hud-pill {
+      background: rgba(15, 23, 42, 0.92);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(251, 191, 36, 0.4);
+      color: var(--text);
+      padding: 8px 18px;
+      border-radius: 30px;
+      font-size: 0.84rem;
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.65);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .mini-hud-pill:hover {
+      border-color: var(--gold);
+    }
+
+    .hud-hl {
+      color: var(--gold);
+      font-weight: 800;
+      font-family: monospace;
+      font-size: 0.92rem;
+    }
+
+    /* ==================== COLLAPSIBLE DRAWER MENU ==================== */
+    #drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      z-index: 998;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    #drawer-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    #sidebar {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: min(420px, 88vw);
+      background: rgba(15, 23, 42, 0.97);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-left: 1px solid rgba(251, 191, 36, 0.35);
+      padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)) 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: -12px 0 45px rgba(0, 0, 0, 0.85);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      z-index: 999;
+      transform: translateX(105%);
+      transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    #sidebar.open {
+      transform: translateX(0);
+    }
+
+    .drawer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 8px;
+    }
+
+    .drawer-title h2 {
+      font-size: 1.15rem;
+      color: var(--gold);
+      font-weight: 800;
+    }
+
+    .drawer-title .subtitle {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+    }
+
+    .close-btn {
+      background: var(--card-surface);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tabs-container {
+      display: flex;
+      gap: 8px;
+      background: #0b1329;
+      padding: 4px;
+      border-radius: 8px;
+      border: 1px solid var(--card-border);
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 8px;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--text-muted);
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn.active {
+      background: var(--accent);
+      color: #ffffff;
+    }
+
+    .control-group {
+      background: var(--card-surface);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .control-title {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .control-title span:last-child {
+      color: var(--gold);
+      font-family: monospace;
+      font-size: 0.88rem;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+      cursor: pointer;
+      height: 6px;
+      border-radius: 3px;
+    }
+
+    .button-grid {
+      display: grid;
+      gap: 6px;
+    }
+
+    .action-btn {
+      border: none;
+      border-radius: 6px;
+      padding: 9px 8px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #ffffff;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .action-btn:active {
+      transform: scale(0.96);
+      filter: brightness(1.2);
+    }
+
+    .hud-card {
+      background: #0b1329;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 11px 13px;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    .hud-title {
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: var(--gold);
+      margin-bottom: 6px;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .hud-line {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px dashed #1e293b;
+      padding: 4px 0;
+    }
+
+    .hud-line:last-child {
+      border-bottom: none;
+    }
+
+    .hud-val {
+      color: var(--accent-light);
+      font-weight: 800;
+      font-family: monospace;
+      font-size: 0.92rem;
+    }
+
+    .badge-tag {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      background: #78350f;
+      color: #fef3c7;
+    }
+
+    .legend {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      text-align: center;
+      line-height: 1.4;
+      padding: 4px;
+    }
+
+    /* ==========================================================================
+   THEME STYLES (Light, Ancient/Brass, Dark)
+   ========================================================================== */
+
+    /* 1. Light Mode (Parchment & Ivory / وضع العاج والورق الفاتح) */
+    body.theme-light {
+      --bg: #e2e8f0;
+      --card: rgba(255, 255, 255, 0.92);
+      --card-surface: #0b1329;
+      --card-border: #cbd5e1;
+      --accent: #b45309;
+      --accent-dark: #78350f;
+      --accent-light: #d97706;
+      --text: #ffffff;
+      --text-muted: #64748b;
+      --gold: #d97706;
+      --gold-light: #b45309;
+    }
+
+    body.theme-light .face-container {
+      background: radial-gradient(circle, #ffffff 65%, #f1f5f9 100%);
+      box-shadow: 0 15px 45px rgba(0, 0, 0, 0.18), inset 0 0 20px rgba(0, 0, 0, 0.06);
+    }
+
+    body.theme-light .astro-layer {
+      filter: none;
+    }
+
+    body.theme-light .kursi-img {
+      filter: none;
+    }
+
+    body.theme-light #kursi-container {
+      filter: drop-shadow(0 -4px 14px rgba(0, 0, 0, 0.22));
+    }
+
+    body.theme-light .fab-pill,
+    body.theme-light .filter-btn,
+    body.theme-light .theme-btn,
+    body.theme-light .action-btn {
+      background: #1e293b;
+      color: rgba(255, 255, 255, 0.88);
+      border-color: #cbd5e1;
+    }
+
+    body.theme-light .filter-btn.active,
+    body.theme-light .theme-btn.active,
+    body.theme-light .mode-btn.active {
+      background: #b45309;
+      color: #ffffff;
+      border-color: #78350f;
+    }
+
+    /* 2. Dark Mode (Comfortable Celestial Slate / الوضع الليلي الفلكي المريح) */
+    body.theme-dark {
+      --bg: #0c111c;
+      --card: rgba(18, 25, 40, 0.88);
+      --card-surface: #151d2c;
+      --card-border: rgba(148, 163, 184, 0.15);
+      --accent: #d97706;
+      --accent-dark: #92400e;
+      --accent-light: #f59e0b;
+      --text: #e2e8f0;
+      --text-muted: #8e9fb5;
+      --gold: #d4a359;
+      --gold-light: #edd39f;
+    }
+
+    body.theme-dark #workspace {
+      background: radial-gradient(circle at center, #151d2d 0%, #090e18 100%);
+    }
+
+    body.theme-dark .face-container {
+      background: radial-gradient(circle at center, #141b2a 0%, #0f1522 65%, #0a0e17 100%);
+      box-shadow: 0 12px 45px rgba(0, 0, 0, 0.75), inset 0 0 35px rgba(0, 0, 0, 0.7);
+      border: 1px solid rgba(212, 163, 89, 0.18);
+    }
+
+    /* Soft, eye-friendly astronomical linework: warm celestial silver, zero neon glare */
+    body.theme-dark .astro-layer {
+      filter: invert(0.85) sepia(0.2) saturate(0.5) brightness(0.86) contrast(0.96);
+    }
+
+    body.theme-dark #plate-layer,
+    body.theme-dark #rete-layer,
+    body.theme-dark #ecliptic-layer,
+    body.theme-dark #back-layer {
+      mix-blend-mode: screen;
+      filter: invert(0.84) sepia(0.22) saturate(0.48) brightness(0.85) contrast(0.95);
+    }
+
+    body.theme-dark #rule-layer,
+    body.theme-dark #alidade-layer {
+      mix-blend-mode: normal;
+      /* Dark celestial ruler with soft warm-silver graduated markings */
+      filter: invert(0.85) sepia(0.28) saturate(0.55) brightness(0.8) contrast(0.92) drop-shadow(0 3px 8px rgba(0, 0, 0, 0.85));
+    }
+
+    body.theme-dark #sun-layer {
+      filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.45));
+    }
+
+    body.theme-dark .kursi-img {
+      filter: none;
+    }
+
+    body.theme-dark #kursi-container {
+      filter: drop-shadow(0 -4px 18px rgba(0, 0, 0, 0.95));
+    }
+
+    body.theme-dark .fab-pill,
+    body.theme-dark .filter-btn,
+    body.theme-dark .theme-btn,
+    body.theme-dark .action-btn {
+      background: rgba(21, 29, 45, 0.82);
+      color: #cbd5e1;
+      border-color: rgba(148, 163, 184, 0.18);
+    }
+
+    body.theme-dark .filter-btn.active,
+    body.theme-dark .theme-btn.active,
+    body.theme-dark .mode-btn.active {
+      background: #b45309;
+      color: #ffffff;
+      border-color: #d97706;
+      box-shadow: 0 0 10px rgba(217, 119, 6, 0.25);
+    }
+
+    /* 3. Ancient Mode (Authentic Andalusian Golden Brass / النحاس الذهبي الأندلسي) */
+    body.theme-ancient {
+      --bg: #140d07;
+      --card: rgba(28, 18, 11, 0.94);
+      --card-surface: #24170d;
+      --card-border: #5f3e17;
+      --accent: #d97706;
+      --accent-dark: #8c4c06;
+      --accent-light: #f59e0b;
+      --text: #fef3c7;
+      --text-muted: #d2b389;
+      --gold: #fbbf24;
+      --gold-light: #fef08a;
+    }
+
+    body.theme-ancient .face-container {
+      background: radial-gradient(circle at 48% 48%, #fce7a4 0%, #e3c06a 30%, #c4993a 65%, #795213 100%);
+      box-shadow: 0 18px 55px rgba(0, 0, 0, 0.9), inset 0 0 50px rgba(70, 40, 10, 0.7);
+    }
+
+    body.theme-ancient #plate-layer,
+    body.theme-ancient #rete-layer,
+    body.theme-ancient #ecliptic-layer,
+    body.theme-ancient #back-layer {
+      mix-blend-mode: multiply;
+      filter: sepia(0.85) saturate(2.4) hue-rotate(352deg) contrast(1.15) brightness(0.96);
+    }
+
+    body.theme-ancient #rule-layer,
+    body.theme-ancient #alidade-layer {
+      mix-blend-mode: normal;
+      /* Authentic handcrafted antique wood (خشب الجوز والماهوجني الأندلسي المصقول) */
+      filter: sepia(100%) saturate(750%) hue-rotate(323deg) brightness(0.76) contrast(135%) drop-shadow(0 4px 10px rgba(18, 9, 3, 0.92));
+    }
+
+    body.theme-ancient #sun-layer {
+      mix-blend-mode: normal;
+      filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.85));
+    }
+
+    body.theme-ancient .kursi-img {
+      filter: none;
+    }
+
+    body.theme-ancient #kursi-container {
+      filter: drop-shadow(0 -5px 16px rgba(45, 25, 6, 0.85));
+    }
+
+    body.theme-ancient .fab-pill,
+    body.theme-ancient .filter-btn,
+    body.theme-ancient .theme-btn,
+    body.theme-ancient .action-btn {
+      background: rgba(36, 23, 13, 0.88);
+      color: #fef3c7;
+      border-color: #5f3e17;
+    }
+
+    body.theme-ancient .filter-btn.active,
+    body.theme-ancient .theme-btn.active,
+    body.theme-ancient .mode-btn.active {
+      background: #b45309;
+      color: #ffffff;
+      border-color: #d97706;
+    }
+
+    /* Theme Switcher Button Group */
+    .theme-segmented {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 3px;
+      border-radius: 9999px;
+      border: 1px solid var(--card-border);
+    }
+
+    .theme-btn {
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      padding: 5px 11px;
+      font-size: 0.80rem;
+      font-weight: 600;
+      border-radius: 9999px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+
+    .theme-btn:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .theme-btn.active {
+      background: var(--accent);
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    }
