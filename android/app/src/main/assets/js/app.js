@@ -174,9 +174,9 @@ function setSolarTime(t, animate = false) {
   const stpTime = document.getElementById('stepper-time-txt');
   if (stpTime) stpTime.innerText = timeStr;
 
-  const { sunRADeg } = AstroMath.computeSunCoords(dayOfYear);
-  const H = (solarTime - 12.0) * 15.0;
-  const targetRete = (sunRADeg + H + 270.0 + 360.0) % 360.0;
+  const targetRete = AstroMath.solarTimeToRete(solarTime, dayOfYear);
+  reteAngle = targetRete;
+  window.reteAngle = targetRete;
   setReteAngleSmooth(targetRete, animate);
 
   const slRete = document.getElementById('slider-rete');
@@ -191,7 +191,84 @@ function setSolarTime(t, animate = false) {
   update();
 }
 
+/**
+ * Handle interactive manual rotation of the Rete (by hand or slider)
+ * Computes the corresponding Solar & Civil Time, Sun Altitude, and updates HUD live.
+ */
+function onReteRotated(newAngle) {
+  userInteracted();
+  const normalized = (newAngle % 360.0 + 360.0) % 360.0;
+  reteAngle = normalized;
+  window.reteAngle = normalized;
+  setReteAngleSmooth(reteAngle, false);
+
+  const slRete = document.getElementById('slider-rete');
+  if (slRete) slRete.value = reteAngle;
+  const txtRete = document.getElementById('txt-rete');
+  if (txtRete) txtRete.innerText = `${reteAngle.toFixed(1)}°`;
+
+  // Synchronize Apparent Solar Time from Rete celestial orientation
+  solarTime = AstroMath.reteToSolarTime(reteAngle, dayOfYear);
+  window.solarTime = solarTime;
+
+  const slTime = document.getElementById('slider-time');
+  if (slTime) slTime.value = solarTime;
+  const h = Math.floor(solarTime);
+  const m = Math.round((solarTime - h) * 60);
+  const hFinal = m === 60 ? (h + 1) % 24 : h;
+  const mFinal = m === 60 ? 0 : m;
+  const timeStr = `${String(hFinal).padStart(2, '0')}:${String(mFinal).padStart(2, '0')}`;
+  const txtTime = document.getElementById('txt-time');
+  if (txtTime) txtTime.innerText = timeStr;
+  const stpTime = document.getElementById('stepper-time-txt');
+  if (stpTime) stpTime.innerText = timeStr;
+
+  update();
+}
+
+/**
+ * Handle interactive manual rotation of the Rule (Front face radial pointer)
+ */
+function onRuleRotated(newAngle) {
+  userInteracted();
+  const normalized = (newAngle % 360.0 + 360.0) % 360.0;
+  ruleAngle = normalized;
+  window.ruleAngle = normalized;
+  setRuleAngleSmooth(ruleAngle, false);
+
+  const slRule = document.getElementById('slider-rule');
+  if (slRule) slRule.value = ruleAngle;
+  const txtRule = document.getElementById('txt-rule');
+  if (txtRule) txtRule.innerText = `${ruleAngle.toFixed(1)}°`;
+
+  update();
+}
+
+/**
+ * Handle interactive manual rotation of the Alidade (Back face surveying rule)
+ */
+function onAlidadeRotated(newAngle) {
+  userInteracted();
+  const normalized = (newAngle % 360.0 + 360.0) % 360.0;
+  alidadeAngle = normalized;
+  window.alidadeAngle = normalized;
+  setAlidadeAngleSmooth(alidadeAngle, false);
+
+  const slAli = document.getElementById('slider-alidade');
+  if (slAli) slAli.value = alidadeAngle;
+  const txtAli = document.getElementById('txt-alidade');
+  if (txtAli) txtAli.innerText = `${alidadeAngle.toFixed(1)}°`;
+
+  update();
+}
+
 function update() {
+  if (window.solarTime !== undefined) solarTime = window.solarTime;
+  if (window.reteAngle !== undefined) reteAngle = window.reteAngle;
+  if (window.ruleAngle !== undefined) ruleAngle = window.ruleAngle;
+  if (window.alidadeAngle !== undefined) alidadeAngle = window.alidadeAngle;
+  if (window.dayOfYear !== undefined) dayOfYear = window.dayOfYear;
+
   const lat = AstroDatabase.constants.latDeg;
   const lon = AstroDatabase.constants.lonDeg;
   const { lambdaSun, sunDec, eotMin } = AstroMath.computeSunCoords(dayOfYear);
@@ -542,26 +619,17 @@ function initAstrolabeApp() {
   // Direct Slider Bindings
   const slRete = document.getElementById('slider-rete');
   if (slRete) slRete.addEventListener('input', e => {
-    userInteracted();
-    setReteAngleSmooth(parseFloat(e.target.value), false);
-    document.getElementById('txt-rete').innerText = `${reteAngle.toFixed(1)}°`;
-    update();
+    onReteRotated(parseFloat(e.target.value));
   });
 
   const slRule = document.getElementById('slider-rule');
   if (slRule) slRule.addEventListener('input', e => {
-    userInteracted();
-    setRuleAngleSmooth(parseFloat(e.target.value), false);
-    document.getElementById('txt-rule').innerText = `${ruleAngle.toFixed(1)}°`;
-    update();
+    onRuleRotated(parseFloat(e.target.value));
   });
 
   const slAli = document.getElementById('slider-alidade');
   if (slAli) slAli.addEventListener('input', e => {
-    userInteracted();
-    setAlidadeAngleSmooth(parseFloat(e.target.value), false);
-    document.getElementById('txt-alidade').innerText = `${alidadeAngle.toFixed(1)}°`;
-    update();
+    onAlidadeRotated(parseFloat(e.target.value));
   });
 
   const slTime = document.getElementById('slider-time');
@@ -610,13 +678,16 @@ function initAstrolabeApp() {
 
   // Live Real-Time Ticker (Every 1 second)
   setInterval(() => {
-    if (window.isLiveMode && !isPointerDown) {
+    if (window.isLiveMode && !window.isPointerDown) {
       setNow(false);
     }
   }, 1000);
 }
 
 // Global Exports
+window.onReteRotated = onReteRotated;
+window.onRuleRotated = onRuleRotated;
+window.onAlidadeRotated = onAlidadeRotated;
 window.userInteracted = userInteracted;
 window.updateLiveTag = updateLiveTag;
 window.toggleLiveMode = toggleLiveMode;
