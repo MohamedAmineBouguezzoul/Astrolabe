@@ -9,6 +9,7 @@ let panX = 0;
 let panY = 0;
 let isSpacePressed = false;
 let isPointerDown = false;
+window.isPointerDown = false;
 let isMultiTouchPinch = false;
 let lastPointerX = 0;
 let lastPointerY = 0;
@@ -212,6 +213,7 @@ function initAstrolabeInteractions() {
       e.preventDefault();
     }
     isPointerDown = true;
+    window.isPointerDown = true;
     lastPointerX = e.clientX;
     lastPointerY = e.clientY;
     lastPointerAngle = getPointerCenterAngle(e.clientX, e.clientY);
@@ -245,52 +247,32 @@ function initAstrolabeInteractions() {
     lastPointerY = e.clientY;
 
     if (window.currentFace === 'back') {
-      if (typeof window.userInteracted === 'function') window.userInteracted();
-      setAlidadeAngleSmooth(window.alidadeAngle + delta, false);
-      const slA = document.getElementById('slider-alidade');
-      if (slA) slA.value = window.alidadeAngle;
-      const txtA = document.getElementById('txt-alidade');
-      if (txtA) txtA.innerText = `${window.alidadeAngle.toFixed(1)}°`;
+      if (typeof window.onAlidadeRotated === 'function') {
+        window.onAlidadeRotated(window.alidadeAngle + delta);
+      } else {
+        setAlidadeAngleSmooth(window.alidadeAngle + delta, false);
+      }
     } else {
       const activeMode = e.shiftKey ? 'rule' : window.touchMode;
-      if (typeof window.userInteracted === 'function') window.userInteracted();
       if (activeMode === 'rule') {
-        setRuleAngleSmooth(window.ruleAngle + delta, false);
-        const slR = document.getElementById('slider-rule');
-        if (slR) slR.value = window.ruleAngle;
-        const txtR = document.getElementById('txt-rule');
-        if (txtR) txtR.innerText = `${window.ruleAngle.toFixed(1)}°`;
+        if (typeof window.onRuleRotated === 'function') {
+          window.onRuleRotated(window.ruleAngle + delta);
+        } else {
+          setRuleAngleSmooth(window.ruleAngle + delta, false);
+        }
       } else {
-        setReteAngleSmooth(window.reteAngle + delta, false);
-        const slRet = document.getElementById('slider-rete');
-        if (slRet) slRet.value = window.reteAngle;
-        const txtRet = document.getElementById('txt-rete');
-        if (txtRet) txtRet.innerText = `${window.reteAngle.toFixed(1)}°`;
-
-        const { sunRADeg } = AstroMath.computeSunCoords(window.dayOfYear);
-        const sunScreenAngle = (window.reteAngle - sunRADeg + 720.0) % 360.0;
-        let H = sunScreenAngle - 270.0;
-        if (H > 180) H -= 360;
-        if (H < -180) H += 360;
-        window.solarTime = ((12.0 + H / 15.0) % 24.0 + 24.0) % 24.0;
-        const slT = document.getElementById('slider-time');
-        if (slT) slT.value = window.solarTime;
-        const h = Math.floor(window.solarTime);
-        const m = Math.round((window.solarTime - h) * 60);
-        const hFinal = m === 60 ? (h + 1) % 24 : h;
-        const mFinal = m === 60 ? 0 : m;
-        const timeStr = `${String(hFinal).padStart(2, '0')}:${String(mFinal).padStart(2, '0')}`;
-        const txtT = document.getElementById('txt-time');
-        if (txtT) txtT.innerText = timeStr;
-        const stpT = document.getElementById('stepper-time-txt');
-        if (stpT) stpT.innerText = timeStr;
+        if (typeof window.onReteRotated === 'function') {
+          window.onReteRotated(window.reteAngle + delta);
+        } else {
+          setReteAngleSmooth(window.reteAngle + delta, false);
+        }
       }
     }
-    if (typeof window.update === 'function') window.update();
   });
 
   window.addEventListener('mouseup', () => {
     isPointerDown = false;
+    window.isPointerDown = false;
     workspace.classList.remove('space-grabbing');
   });
 
@@ -320,6 +302,7 @@ function initAstrolabeInteractions() {
   window.addEventListener('blur', () => {
     isSpacePressed = false;
     isPointerDown = false;
+    window.isPointerDown = false;
     workspace.classList.remove('space-panning');
     workspace.classList.remove('space-grabbing');
   });
@@ -337,6 +320,7 @@ function initAstrolabeInteractions() {
     } else if (e.touches.length === 1) {
       isMultiTouchPinch = false;
       isPointerDown = true;
+      window.isPointerDown = true;
       lastPointerX = e.touches[0].clientX;
       lastPointerY = e.touches[0].clientY;
       lastPointerAngle = getPointerCenterAngle(e.touches[0].clientX, e.touches[0].clientY);
@@ -378,53 +362,36 @@ function initAstrolabeInteractions() {
       lastPointerX = touch.clientX;
       lastPointerY = touch.clientY;
 
-      if (typeof window.userInteracted === 'function') window.userInteracted();
       if (window.currentFace === 'back') {
-        setAlidadeAngleSmooth(window.alidadeAngle + delta, false);
-        const slA = document.getElementById('slider-alidade');
-        if (slA) slA.value = window.alidadeAngle;
-        const txtA = document.getElementById('txt-alidade');
-        if (txtA) txtA.innerText = `${window.alidadeAngle.toFixed(1)}°`;
+        if (typeof window.onAlidadeRotated === 'function') {
+          window.onAlidadeRotated(window.alidadeAngle + delta);
+        } else {
+          setAlidadeAngleSmooth(window.alidadeAngle + delta, false);
+        }
       } else {
         if (window.touchMode === 'rule') {
-          setRuleAngleSmooth(window.ruleAngle + delta, false);
-          const slR = document.getElementById('slider-rule');
-          if (slR) slR.value = window.ruleAngle;
-          const txtR = document.getElementById('txt-rule');
-          if (txtR) txtR.innerText = `${window.ruleAngle.toFixed(1)}°`;
+          if (typeof window.onRuleRotated === 'function') {
+            window.onRuleRotated(window.ruleAngle + delta);
+          } else {
+            setRuleAngleSmooth(window.ruleAngle + delta, false);
+          }
         } else {
-          setReteAngleSmooth(window.reteAngle + delta, false);
-          const slRet = document.getElementById('slider-rete');
-          if (slRet) slRet.value = window.reteAngle;
-          const txtRet = document.getElementById('txt-rete');
-          if (txtRet) txtRet.innerText = `${window.reteAngle.toFixed(1)}°`;
-
-          const { sunRADeg } = AstroMath.computeSunCoords(window.dayOfYear);
-          const sunScreenAngle = (window.reteAngle - sunRADeg + 720.0) % 360.0;
-          let H = sunScreenAngle - 270.0;
-          if (H > 180) H -= 360;
-          if (H < -180) H += 360;
-          window.solarTime = ((12.0 + H / 15.0) % 24.0 + 24.0) % 24.0;
-          const slT = document.getElementById('slider-time');
-          if (slT) slT.value = window.solarTime;
-          const h = Math.floor(window.solarTime);
-          const m = Math.round((window.solarTime - h) * 60);
-          const hFinal = m === 60 ? (h + 1) % 24 : h;
-          const mFinal = m === 60 ? 0 : m;
-          const timeStr = `${String(hFinal).padStart(2, '0')}:${String(mFinal).padStart(2, '0')}`;
-          const txtT = document.getElementById('txt-time');
-          if (txtT) txtT.innerText = timeStr;
-          const stpT = document.getElementById('stepper-time-txt');
-          if (stpT) stpT.innerText = timeStr;
+          if (typeof window.onReteRotated === 'function') {
+            window.onReteRotated(window.reteAngle + delta);
+          } else {
+            setReteAngleSmooth(window.reteAngle + delta, false);
+          }
         }
       }
-      if (typeof window.update === 'function') window.update();
     }
   }, { passive: false });
 
   workspace.addEventListener('touchend', e => {
     if (e.touches.length < 2) isMultiTouchPinch = false;
-    if (e.touches.length === 0) isPointerDown = false;
+    if (e.touches.length === 0) {
+      isPointerDown = false;
+      window.isPointerDown = false;
+    }
   });
 }
 

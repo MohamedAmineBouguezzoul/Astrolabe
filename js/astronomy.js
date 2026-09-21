@@ -33,8 +33,8 @@ const AstroMath = {
 
     // Equation of center (deg)
     const C = (1.914602 - 0.004817 * T) * Math.sin(M_rad)
-            + (0.019993 - 0.000101 * T) * Math.sin(2 * M_rad)
-            + 0.000289 * Math.sin(3 * M_rad);
+      + (0.019993 - 0.000101 * T) * Math.sin(2 * M_rad)
+      + 0.000289 * Math.sin(3 * M_rad);
 
     // True longitude of the Sun (deg)
     const sunTrueLon = (L0 + C) % 360.0;
@@ -64,10 +64,10 @@ const AstroMath = {
     const y2 = Math.tan(epsRad / 2.0) * Math.tan(epsRad / 2.0);
     const L0_rad = L0 * Math.PI / 180.0;
     const eotRad = y2 * Math.sin(2 * L0_rad)
-                 - 2 * 0.016708634 * Math.sin(M_rad)
-                 + 4 * 0.016708634 * y2 * Math.sin(M_rad) * Math.cos(2 * L0_rad)
-                 - 0.5 * (y2 * y2) * Math.sin(4 * L0_rad)
-                 - 1.25 * (0.016708634 * 0.016708634) * Math.sin(2 * M_rad);
+      - 2 * 0.016708634 * Math.sin(M_rad)
+      + 4 * 0.016708634 * y2 * Math.sin(M_rad) * Math.cos(2 * L0_rad)
+      - 0.5 * (y2 * y2) * Math.sin(4 * L0_rad)
+      - 1.25 * (0.016708634 * 0.016708634) * Math.sin(2 * M_rad);
     const eotMin = (eotRad * 180.0 / Math.PI) * 4.0;
 
     return { lambdaSun, sunDec: sunDecDeg, sunDecRad, sunRA, sunRADeg, eotMin };
@@ -89,6 +89,26 @@ const AstroMath = {
     const { eotMin } = this.computeSunCoords(dayOfYear);
     const lonOffsetHours = -lonDeg / 15.0;
     return ((solarHour - eotMin / 60.0 + lonOffsetHours + tzOffset) % 24.0 + 24.0) % 24.0;
+  },
+
+  /**
+   * Convert Rete orientation angle (deg) to Apparent Local Solar Time (hours [0, 24))
+   */
+  reteToSolarTime(reteAngle, dayOfYear) {
+    const { sunRADeg } = this.computeSunCoords(dayOfYear);
+    let H = (reteAngle - sunRADeg - 270.0) % 360.0;
+    if (H > 180.0) H -= 360.0;
+    if (H < -180.0) H += 360.0;
+    return ((12.0 + H / 15.0) % 24.0 + 24.0) % 24.0;
+  },
+
+  /**
+   * Convert Apparent Local Solar Time (hours) to Rete orientation angle (deg [0, 360))
+   */
+  solarTimeToRete(solarHour, dayOfYear) {
+    const { sunRADeg } = this.computeSunCoords(dayOfYear);
+    const H = (solarHour - 12.0) * 15.0;
+    return ((sunRADeg + H + 270.0) % 360.0 + 360.0) % 360.0;
   },
 
   /**
@@ -209,6 +229,6 @@ window.computeSunCoords = AstroMath.computeSunCoords.bind(AstroMath);
 window.clockToSolarTime = AstroMath.clockToSolarTime.bind(AstroMath);
 window.dayOfYearToDate = AstroMath.dayOfYearToDate.bind(AstroMath);
 window.dateStringToDayOfYear = AstroMath.dateStringToDayOfYear.bind(AstroMath);
-window.findObjectUnderRule = function() {
+window.findObjectUnderRule = function () {
   return AstroMath.findObjectUnderRule(window.ruleAngle, window.reteAngle, window.dayOfYear);
 };
