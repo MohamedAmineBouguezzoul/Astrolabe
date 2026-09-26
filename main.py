@@ -170,8 +170,8 @@ def main():
         help="Inscriptions language"
     )
     parser.add_argument(
-        '--num', type=str, default='abjad', choices=['abjad', 'eastern_arabic', 'latin'],
-        help="Numeral system: 'abjad' (Hisab al-Jummal), 'eastern_arabic', or 'latin'"
+        '--num', type=str, default='eastern_arabic', choices=['abjad', 'eastern_arabic', 'latin'],
+        help="Numeral system: 'eastern_arabic' (٠، ١، ٢...), 'abjad' (Hisab al-Jummal), or 'latin'"
     )
     parser.add_argument(
         '--printable', action='store_true',

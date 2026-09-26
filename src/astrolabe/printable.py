@@ -25,6 +25,12 @@ import matplotlib.patches as patches
 import matplotlib.patheffects as pe
 from matplotlib.backends.backend_pdf import PdfPages
 
+if not __package__:
+    src_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    if src_dir not in sys.path:
+        sys.path.insert(0, src_dir)
+    __package__ = 'astrolabe'
+
 from .arabic import ArabicFormatter
 from .engine import Astrolabe
 
@@ -104,7 +110,7 @@ class PrintableA4:
     LIMBUS_DIAMETER_MM = 180.0
 
     def __init__(self, astrolabe=None, latitude=35.78, city="Tangier",
-                 language="arabic", numeral_system="abjad", output_dir="printable"):
+                 language="arabic", numeral_system="eastern_arabic", output_dir="printable"):
         if astrolabe is not None:
             self.astrolabe = astrolabe
         else:
@@ -115,7 +121,12 @@ class PrintableA4:
                 numeral_system=numeral_system,
                 screen_mode=False
             )
-        self.output_dir = output_dir
+        if output_dir is None or output_dir == "printable":
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            project_root = os.path.abspath(os.path.join(current_dir, '..', '..'))
+            self.output_dir = os.path.join(project_root, "printable")
+        else:
+            self.output_dir = output_dir
 
         # Calculate exact scale (mm per data unit)
         r_cap = self.astrolabe.proj.r_capricorn
@@ -483,3 +494,9 @@ Tie a suspension cord or ring through the top hole of the Kursi arch to suspend 
 """
         with open(os.path.join(self.output_dir, "README.md"), "w", encoding="utf-8") as f:
             f.write(guide_content)
+
+
+if __name__ == '__main__':
+    generator = PrintableA4(numeral_system="eastern_arabic")
+    generator.export_all()
+
