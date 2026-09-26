@@ -174,12 +174,16 @@ def main():
         help="Numeral system: 'abjad' (Hisab al-Jummal), 'eastern_arabic', or 'latin'"
     )
     parser.add_argument(
+        '--printable', action='store_true',
+        help="Generate 1:1 scale print-ready A4 PDF sheets (printable/) with packaged Rule & Alidade and isolated Rete transparency"
+    )
+    parser.add_argument(
         '--port', type=int, default=8080,
         help="Local HTTP server port (for --web)"
     )
     parser.add_argument(
         '--output-dir', type=str, default=None,
-        help="Custom output directory for --export (defaults to exports/)"
+        help="Custom output directory for --export (defaults to exports/) or --printable (defaults to printable/)"
     )
     args = parser.parse_args()
 
@@ -191,6 +195,19 @@ def main():
         from astrolabe.label_editor import start_label_editor
         port = args.port if args.port != 8080 else 8088
         start_label_editor(port=port, open_browser=True)
+        return
+
+    if args.printable:
+        from astrolabe.printable import PrintableA4
+        out_dir = args.output_dir if args.output_dir else os.path.join(project_root, "printable")
+        generator = PrintableA4(
+            latitude=args.lat,
+            city=args.city,
+            language=args.lang,
+            numeral_system=args.num,
+            output_dir=out_dir
+        )
+        generator.export_all()
         return
 
     if args.screen:

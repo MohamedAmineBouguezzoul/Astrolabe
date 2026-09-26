@@ -134,19 +134,45 @@ class ArabicFormatter:
     @classmethod
     def reshape_text(cls, text):
         """
-        Shapes Arabic text and reverses character/token order for Matplotlib's LTR engine.
+        Shapes Arabic text and reverses character/word order for Matplotlib's LTR engine.
+        Handles pure Arabic phrases as well as mixed Latin-Arabic titles and annotations.
         """
         if not text:
             return ''
-        tokens = re.findall(r'[\u0600-\u064F\u0670-\u06D3\u06D5]+|[^\u0600-\u064F\u0670-\u06D3\u06D5]+', str(text))
-        result_tokens = []
-        for token in tokens:
-            if re.match(r'[\u0600-\u064F\u0670-\u06D3\u06D5]+', token):
-                shaped = cls.shape_word(token)
-                result_tokens.append(shaped[::-1])
-            else:
-                result_tokens.append(token)
-        return ''.join(result_tokens[::-1])
+        text_str = str(text)
+
+        has_latin = bool(re.search(r'[A-Za-z]', text_str))
+        starts_with_arabic = bool(re.match(r'^\s*[\u0600-\u06FF]', text_str))
+
+        if has_latin and not starts_with_arabic:
+            # Latin-dominant with embedded Arabic runs (e.g. 'ASTROLABE MATER (أم الأسطرلاب)')
+            arabic_pattern = re.compile(
+                r'([\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]+'
+                r'(?:\s+[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]+)*)'
+            )
+            def replace_run(m):
+                words = m.group(1).split()
+                shaped_words = [cls.shape_word(w)[::-1] for w in words]
+                return ' '.join(shaped_words[::-1])
+
+            return arabic_pattern.sub(replace_run, text_str)
+        else:
+            # Arabic-dominant or pure Arabic: tokenize preserving whitespace tokens cleanly
+            raw_tokens = re.findall(r'\S+|\s+', text_str)
+            result_tokens = []
+            for token in raw_tokens:
+                if re.search(r'[\u0600-\u06FF\uFB50-\uFDFF\uFE70-\uFEFF]', token):
+                    sub_tokens = re.findall(r'[\u0600-\u064F\u0670-\u06D3\u06D5]+|[^\u0600-\u064F\u0670-\u06D3\u06D5]+', token)
+                    sub_res = []
+                    for st in sub_tokens:
+                        if re.match(r'[\u0600-\u064F\u0670-\u06D3\u06D5]+', st):
+                            sub_res.append(cls.shape_word(st)[::-1])
+                        else:
+                            sub_res.append(st)
+                    result_tokens.append(''.join(sub_res))
+                else:
+                    result_tokens.append(token)
+            return ''.join(result_tokens[::-1])
 
     @classmethod
     def to_jummal(cls, n):
